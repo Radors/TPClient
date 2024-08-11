@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "tpclient", "TPClient\tpclient.esproj", "{A8F5D49E-C896-4824-8FD4-5E3E325B9E8E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A8F5D49E-C896-4824-8FD4-5E3E325B9E8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F5D49E-C896-4824-8FD4-5E3E325B9E8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F5D49E-C896-4824-8FD4-5E3E325B9E8E}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{A8F5D49E-C896-4824-8FD4-5E3E325B9E8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F5D49E-C896-4824-8FD4-5E3E325B9E8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F5D49E-C896-4824-8FD4-5E3E325B9E8E}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6E63A1AE-D4E7-42E5-B9B2-CB9BED4FD915}
+	EndGlobalSection
+EndGlobal
