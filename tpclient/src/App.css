@@ -216,8 +216,13 @@
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
 }
 
-.antal-gram-arrow-left {
-    color: gray;
+.reactivate-custom-weight {
+    background: none;
+    padding: 7px;
+}
+
+.antal-gram-hidden-icon {
+    color: rgb(140, 140, 140);
 }
 
 .ta-bort {

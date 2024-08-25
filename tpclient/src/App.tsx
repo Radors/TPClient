@@ -2,14 +2,22 @@
 import { Fragment, useState, useEffect } from 'react';
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfo, faPlay, faCircleMinus, faPlus, faSquarePollVertical, faXmark, faArrowLeft} from '@fortawesome/free-solid-svg-icons';
+import { faInfo, faPlay, faCircleMinus, faPlus, faSquarePollVertical, faXmark, } from '@fortawesome/free-solid-svg-icons';
+import { faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 
-// An Array<FoodItem> will be received from the server, i.e. an array with elements of the following type:
-interface FoodItem {
-    id: number;
-    name: string; // Original input just carried along (not the name of the matched item!)
-    weight: number; // Grams with no (!) decimals
-    // Nutrient percentages as a two-decimal-rounded "and ready" double (in TS a number), like 0.37 or 2.86 (!)
+// Array<FoodInput> will be SENT to the server.
+interface FoodInput {
+    frontendId: number;
+    name: string;
+    weight: number; // Allowed to be zero, which indicates a lack of custom weight. It's in Grams with no decimals (an int on the server).
+}
+
+// Array<FoodAggregation> will be RECEIVED from the server.
+interface FoodAggregation {
+    frontendId: number;
+    name: string; // Original input carried along / brought back ( not the name of any matched item(s) )
+    weight: number;
+    // Nutrient percentages in decimal form, already multiplied with the weight (!), like 0.376424 or 1.861345
     jod: number;
     jarn: number;
     kalcium: number;
@@ -29,9 +37,10 @@ interface FoodItem {
     e: number;
 }
 
-//Here are some fake food items during development
-const FakeFoodItem: FoodItem = {
-    id: 0, name: "Lax", weight: 200,
+const FakeFoodItem: FoodAggregation = {
+    frontendId: 0,
+    name: "Lax",
+    weight: 200,
     jod: 0.2,
     jarn: 0.5,
     kalcium: 0.3,
@@ -50,8 +59,10 @@ const FakeFoodItem: FoodItem = {
     d: 0.4,
     e: 0.3,
 }
-const FakeFoodItem2: FoodItem = {
-    id: 1, name: "Spenat", weight: 175,
+const FakeFoodItem2: FoodAggregation = {
+    frontendId: 1,
+    name: "Spenat",
+    weight: 175,
     jod: 0.2,
     jarn: 0.5,
     kalcium: 0.3,
@@ -70,8 +81,10 @@ const FakeFoodItem2: FoodItem = {
     d: 0.4,
     e: 0.3,
 }
-const FakeFoodItem3: FoodItem = {
-    id: 2, name: "Potatis", weight: 225,
+const FakeFoodItem3: FoodAggregation = {
+    frontendId: 2,
+    name: "Potatis",
+    weight: 225,
     jod: 0.2,
     jarn: 0.5,
     kalcium: 0.3,
@@ -90,8 +103,8 @@ const FakeFoodItem3: FoodItem = {
     d: 0.4,
     e: 0.3,
 }
-// Here is the fake Array<FoodItem> used during development
-const fakeFoods: Array<FoodItem> = [FakeFoodItem, FakeFoodItem2, FakeFoodItem3];
+// Here is the fake Array<FoodAggregation> used during development
+const fakeFoods: Array<FoodAggregation> = [FakeFoodItem, FakeFoodItem2, FakeFoodItem3];
 
 export default function App() {
     return (
@@ -139,7 +152,7 @@ function FoodManager() {
         return () => {
             clearTimeout(id);
         };
-    }, [demo, inputRows]); /* ? */
+    }, [demo, inputRows]);
 
     useEffect(() => {
         let id: ReturnType<typeof setTimeout>;
@@ -179,7 +192,6 @@ function FoodManager() {
         const isInteger = /^\d+$/.test(event.target.value);
         if (isInteger) {
             const value = Number(event.target.value);
-
             if (value > -1) {
                 const newInputRows = inputRows.slice();
                 newInputRows[index].weight = value;
@@ -215,7 +227,9 @@ function FoodManager() {
     return (
         <div className="food-manager">
             <TopBar onStartDemonstration={onStartDemonstration} onToggleMerInformation={onToggleMerInformation} />
-            <FoodMain onlyNumbersWarning={onlyNumbersWarning} onInputToWeight={onInputToWeight} onToggleCustomWeights={onToggleCustomWeights} onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation} onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} />
+            <FoodMain onlyNumbersWarning={onlyNumbersWarning} onInputToWeight={onInputToWeight} onToggleCustomWeights={onToggleCustomWeights}
+                onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
+                onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} />
         </div>
     );
 }
@@ -236,11 +250,24 @@ function TopBar({ onStartDemonstration, onToggleMerInformation }: { onStartDemon
     );
 }
 
-function FoodMain({ onlyNumbersWarning, onInputToWeight, inputRows, merInformation, onInputToMatvara, onToggleMerInformation, onToggleCustomWeights, onAddInputRow, onRemoveInputRow }: { onlyNumbersWarning: { active: boolean, index: number }, onInputToWeight: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void ,onToggleCustomWeights: (index: number) => void, onAddInputRow: () => void, onRemoveInputRow: (index: number) => void, inputRows: Array<{id: number, matvara: string, customWeight: boolean, weight: number}>, merInformation: boolean, onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void, onToggleMerInformation: () => void }) {
+function FoodMain({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara, merInformation, onToggleMerInformation, onToggleCustomWeights }:
+    {
+        onlyNumbersWarning: { active: boolean, index: number },
+        onInputToWeight: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
+        inputRows: Array<{ id: number, matvara: string, customWeight: boolean, weight: number }>,
+        onAddInputRow: () => void,
+        onRemoveInputRow: (index: number) => void,
+        onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
+        merInformation: boolean,
+        onToggleMerInformation: () => void,
+        onToggleCustomWeights: (index: number) => void,
+    }) {
     return (
         <div className="food-main">
             <div className="food-main-left">
-                <FoodInput onlyNumbersWarning={onlyNumbersWarning} onInputToWeight={onInputToWeight} onToggleCustomWeights={onToggleCustomWeights} onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation} onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} />
+                <FoodInput onlyNumbersWarning={onlyNumbersWarning} onInputToWeight={onInputToWeight} onToggleCustomWeights={onToggleCustomWeights}
+                    onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
+                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} />
             </div>
             <div className="food-main-divider">
             </div>
@@ -251,7 +278,18 @@ function FoodMain({ onlyNumbersWarning, onInputToWeight, inputRows, merInformati
     );
 }
 
-function FoodInput({ onlyNumbersWarning, onInputToWeight, inputRows, merInformation, onInputToMatvara, onToggleMerInformation, onToggleCustomWeights, onAddInputRow, onRemoveInputRow }: { onlyNumbersWarning: { active: boolean, index: number }, onInputToWeight: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void, onToggleCustomWeights: (index: number) => void, onAddInputRow: () => void, onRemoveInputRow: (index: number) => void, inputRows: Array<{ id: number, matvara: string, customWeight: boolean, weight: number }>, merInformation: boolean, onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void, onToggleMerInformation: () => void }) {
+function FoodInput({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara, merInformation, onToggleMerInformation, onToggleCustomWeights }:
+    {
+        onlyNumbersWarning: { active: boolean, index: number },
+        onInputToWeight: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
+        inputRows: Array<{ id: number, matvara: string, customWeight: boolean, weight: number }>, 
+        onAddInputRow: () => void,
+        onRemoveInputRow: (index: number) => void,
+        onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
+        merInformation: boolean,
+        onToggleMerInformation: () => void,
+        onToggleCustomWeights: (index: number) => void,
+    }) {
     return (
         <div className="food-input">
             <div className="mer-information-outer"
@@ -277,7 +315,8 @@ function FoodInput({ onlyNumbersWarning, onInputToWeight, inputRows, merInformat
                     }}>
                     Ta bort<br />matvara
                 </div>
-                <FoodInputRows onlyNumbersWarning={onlyNumbersWarning} onInputToWeight={onInputToWeight} onInputToMatvara={onInputToMatvara} inputRows={inputRows} onToggleCustomWeights={onToggleCustomWeights} onRemoveInputRow={onRemoveInputRow} /> 
+                <FoodInputRows onlyNumbersWarning={onlyNumbersWarning} onInputToWeight={onInputToWeight} onInputToMatvara={onInputToMatvara}
+                    inputRows={inputRows} onToggleCustomWeights={onToggleCustomWeights} onRemoveInputRow={onRemoveInputRow} /> 
             </div>
             <button className="lagg-till-fler" onClick={onAddInputRow}>
                 <FontAwesomeIcon size="lg" className="plus-icon" icon={faPlus} />Lägg till fler
@@ -290,7 +329,15 @@ function FoodInput({ onlyNumbersWarning, onInputToWeight, inputRows, merInformat
     );
 }
 
-function FoodInputRows({ onlyNumbersWarning, onInputToWeight, onToggleCustomWeights, onRemoveInputRow, inputRows, onInputToMatvara }: { onlyNumbersWarning: { active: boolean, index: number }, onInputToWeight: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void, onToggleCustomWeights: (index: number) => void, onRemoveInputRow: (index: number) => void, inputRows: Array<{ id: number, matvara: string, customWeight: boolean, weight: number }>, onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void }) {
+function FoodInputRows({ onlyNumbersWarning, onInputToWeight, onToggleCustomWeights, onRemoveInputRow, inputRows, onInputToMatvara }:
+    {
+        onlyNumbersWarning: { active: boolean, index: number },
+        onInputToWeight: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
+        onToggleCustomWeights: (index: number) => void,
+        onRemoveInputRow: (index: number) => void,
+        inputRows: Array<{ id: number, matvara: string, customWeight: boolean, weight: number }>,
+        onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void
+    }) {
     const content = inputRows.map((row: { id: number, matvara: string, customWeight: boolean, weight: number }, index: number) => (
         <Fragment key={row.id}>
             <input className="matvara" type="text" value={row.matvara} onChange={(event) => onInputToMatvara(event, index)} placeholder="Matvara" />
@@ -306,13 +353,16 @@ function FoodInputRows({ onlyNumbersWarning, onInputToWeight, onToggleCustomWeig
                         display: (onlyNumbersWarning.active && onlyNumbersWarning.index == index) ? "flex" : "none",
                     }}
                 >
-                    Endast siffror!
+                    Endast siffror
                 </div>
             </div>
-            <FontAwesomeIcon icon={faArrowLeft} className="antal-gram-arrow-left" size="lg"
+            <button className="reactivate-custom-weight" onClick={() => onToggleCustomWeights(index)}
                 style={{
                     display: `${row.customWeight ? "none" : "flex"}`,
-            }}/>
+                }}
+            >
+                <FontAwesomeIcon icon={faEyeSlash} className="antal-gram-hidden-icon" size="lg" />
+            </button>
             <button className="ta-bort" onClick={() => onRemoveInputRow(index)}
                 style={{
                     visibility: `${inputRows.length == 1 ? "hidden" : "visible"}`,
@@ -354,12 +404,12 @@ function FoodOutput() {
 }
 
 function FoodGraph({ itemVisibility, showGuidelines }: { itemVisibility: Array<boolean>, showGuidelines: boolean}) {
-    const nutrientPropertyKeys: Array<keyof FoodItem> = ["jod", "jarn", "kalcium", "kalium", "magnesium", "selen", "zink",
+    const nutrientPropertyKeys: Array<keyof FoodAggregation> = ["jod", "jarn", "kalcium", "kalium", "magnesium", "selen", "zink",
         "a", "b1", "b2", "b3", "b6", "b9", "b12", "c", "d", "e"];
     const nutrientLabels: Array<string> = ["Jod", "Järn", "Kalcium", "Kalium", "Magnesium", "Selen", "Zink", 
         "A", "B1", "B2", "B3", "B6", "B9", "B12", "C", "D", "E"];
 
-    const allBars = nutrientPropertyKeys.map((property: keyof FoodItem, index: number) => (
+    const allBars = nutrientPropertyKeys.map((property: keyof FoodAggregation, index: number) => (
         <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} foodItems={fakeFoods} />
     ));
 
@@ -402,8 +452,13 @@ function FoodGraphNutrientsContainer({ isMineral, nutrient}: { isMineral: boolea
 const barColors: Array<string> = ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B",
             "#E377C2", "#BCBD22", "#17BECF", "#AEC7E8", "#FFBB78", "#98DF8A", "#FF9896", "#C5B0D5"];
 
-function FoodGraphCanvasBarContainer({ nutrientProperty, foodItems, itemVisibility }: { nutrientProperty: keyof FoodItem, foodItems: Array<FoodItem>, itemVisibility: Array<boolean>}) {
-    const content = foodItems.map((item: FoodItem, index: number) => (
+function FoodGraphCanvasBarContainer({ nutrientProperty, foodItems, itemVisibility }:
+    {
+        nutrientProperty: keyof FoodAggregation,
+        foodItems: Array<FoodAggregation>,
+        itemVisibility: Array<boolean>
+    }) {
+    const content = foodItems.map((item: FoodAggregation, index: number) => (
         <div key={index} className="food-graph-canvas-bar"
             style={{
                 backgroundColor: `${barColors[index]}`,
@@ -421,8 +476,14 @@ function FoodGraphCanvasBarContainer({ nutrientProperty, foodItems, itemVisibili
 }
 
 
-function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines }: { itemVisibility: Array<boolean>, onToggleVisibility: (id: number) => void, onToggleGuidelines: () => void, showGuidelines: boolean }) {
-    const allLegends = fakeFoods.map((item: FoodItem, index: number) => (
+function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines }:
+    {
+        itemVisibility: Array<boolean>,
+        onToggleVisibility: (id: number) => void,
+        onToggleGuidelines: () => void,
+        showGuidelines: boolean
+    }) {
+    const allLegends = fakeFoods.map((item: FoodAggregation, index: number) => (
         <div key={index} className="food-legend-and-switch">
             <div className="food-legend-container">
                 <div className="food-legend-container-left">
