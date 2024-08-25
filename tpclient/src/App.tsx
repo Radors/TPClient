@@ -17,6 +17,7 @@ interface FoodAggregation {
     frontendId: number;
     name: string; // Original input carried along / brought back ( not the name of any matched item(s) )
     weight: number;
+    rejected: boolean;
     // Nutrient percentages in decimal form, already multiplied with the weight (!), like 0.376424 or 1.861345
     jod: number;
     jarn: number;
@@ -41,6 +42,7 @@ const FakeFoodItem: FoodAggregation = {
     frontendId: 0,
     name: "Lax",
     weight: 200,
+    rejected: false,
     jod: 0.2,
     jarn: 0.5,
     kalcium: 0.3,
@@ -63,6 +65,7 @@ const FakeFoodItem2: FoodAggregation = {
     frontendId: 1,
     name: "Spenat",
     weight: 175,
+    rejected: false,
     jod: 0.2,
     jarn: 0.5,
     kalcium: 0.3,
@@ -85,6 +88,7 @@ const FakeFoodItem3: FoodAggregation = {
     frontendId: 2,
     name: "Potatis",
     weight: 225,
+    rejected: false,
     jod: 0.2,
     jarn: 0.5,
     kalcium: 0.3,
