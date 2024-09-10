@@ -1,5 +1,5 @@
 ﻿
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfo, faPlay, faCircleMinus, faPlus, faSquarePollVertical, faXmark, } from '@fortawesome/free-solid-svg-icons';
@@ -38,78 +38,6 @@ interface FoodAggregation {
     e: number;
 }
 
-const FakeFoodItem: FoodAggregation = {
-    frontendId: 0,
-    name: "Lax",
-    weight: 200,
-    rejected: false,
-    jod: 0.2,
-    jarn: 0.5,
-    kalcium: 0.3,
-    kalium: 0.2,
-    magnesium: 0.5,
-    selen: 0.4,
-    zink: 0.2,
-    a: 0.6,
-    b1: 0.1,
-    b2: 0.3,
-    b3: 0.2,
-    b6: 0.5,
-    b9: 0.4,
-    b12: 0.3,
-    c: 0.2,
-    d: 0.4,
-    e: 0.3,
-}
-const FakeFoodItem2: FoodAggregation = {
-    frontendId: 1,
-    name: "Spenat",
-    weight: 175,
-    rejected: false,
-    jod: 0.2,
-    jarn: 0.5,
-    kalcium: 0.3,
-    kalium: 0.2,
-    magnesium: 0.5,
-    selen: 0.4,
-    zink: 0.2,
-    a: 0.6,
-    b1: 0.1,
-    b2: 0.3,
-    b3: 0.2,
-    b6: 0.5,
-    b9: 0.4,
-    b12: 0.3,
-    c: 0.2,
-    d: 0.4,
-    e: 0.3,
-}
-const FakeFoodItem3: FoodAggregation = {
-    frontendId: 2,
-    name: "Potatis",
-    weight: 225,
-    rejected: false,
-    jod: 0.2,
-    jarn: 0.5,
-    kalcium: 0.3,
-    kalium: 0.2,
-    magnesium: 0.5,
-    selen: 0.4,
-    zink: 0.2,
-    a: 0.6,
-    b1: 0.1,
-    b2: 0.3,
-    b3: 0.2,
-    b6: 0.5,
-    b9: 0.4,
-    b12: 0.3,
-    c: 0.2,
-    d: 0.4,
-    e: 0.3,
-}
-// Here is the fake Array<FoodAggregation> used during development
-const fakeFoods: Array<FoodAggregation> = [FakeFoodItem, FakeFoodItem2, FakeFoodItem3];
-
 export default function App() {
     return (
         <div className="outermost">
@@ -130,10 +58,44 @@ function FoodManager() {
     const startingPoint = [{ id: 0, matvara: "", customWeight: true, weight: 0 },
                            { id: 1, matvara: "", customWeight: true, weight: 0 },
                            { id: 2, matvara: "", customWeight: true, weight: 0 }]
+    const [inputRows, setInputRows] = useState(startingPoint);
+
     const [demo, setDemo] = useState(false);
     const [merInformation, setMerInformation] = useState(false);
-    const [inputRows, setInputRows] = useState(startingPoint);
-    const [onlyNumbersWarning, setOnlyNumbersWarning] = useState({active: false, index: 0});
+    const [onlyNumbersWarning, setOnlyNumbersWarning] = useState({ active: false, index: 0 });
+    const [isRequesting, setIsRequesting] = useState(false);
+    const [foodAggregations, setFoodAggregations] = useState(Array<FoodAggregation>);
+
+    const onGenerateResults = useCallback(async () => {
+        if (isRequesting) return;
+        setIsRequesting(true);
+
+        const url = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/processinput";
+        const foodInputs: Array<FoodInput> = inputRows.filter(row => row.matvara !== "").map((row: { id: number, matvara: string, customWeight: boolean, weight: number }) => {
+            const foodInput: FoodInput = { frontendId: row.id, name: row.matvara, weight: row.customWeight ? row.weight : 0 };
+            return foodInput;
+        });
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(foodInputs)
+            });
+
+            if (response.ok) {
+                const receivedFoodAggregations: Array<FoodAggregation> = await response.json();
+                setFoodAggregations(receivedFoodAggregations);
+            }
+        } catch {
+            console.log("placeholder");
+        }
+        finally {
+            setIsRequesting(false);
+        }
+    }, [isRequesting, inputRows]);
 
     useEffect(() => {
         const finalValues = ["Torsk", "Potatis", "Hollandaisesås"];
@@ -233,7 +195,7 @@ function FoodManager() {
             <TopBar onStartDemonstration={onStartDemonstration} onToggleMerInformation={onToggleMerInformation} />
             <FoodMain onlyNumbersWarning={onlyNumbersWarning} onInputToWeight={onInputToWeight} onToggleCustomWeights={onToggleCustomWeights}
                 onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
-                onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} />
+                onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} foodAggregations={foodAggregations} onGenerateResults={onGenerateResults} />
         </div>
     );
 }
@@ -254,7 +216,8 @@ function TopBar({ onStartDemonstration, onToggleMerInformation }: { onStartDemon
     );
 }
 
-function FoodMain({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara, merInformation, onToggleMerInformation, onToggleCustomWeights }:
+function FoodMain({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputRow, onRemoveInputRow,
+    onInputToMatvara, merInformation, onToggleMerInformation, onToggleCustomWeights, foodAggregations, onGenerateResults }:
     {
         onlyNumbersWarning: { active: boolean, index: number },
         onInputToWeight: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
@@ -265,24 +228,27 @@ function FoodMain({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputRo
         merInformation: boolean,
         onToggleMerInformation: () => void,
         onToggleCustomWeights: (index: number) => void,
+        foodAggregations: Array<FoodAggregation>
+        onGenerateResults: () => void,
     }) {
     return (
         <div className="food-main">
             <div className="food-main-left">
                 <FoodInput onlyNumbersWarning={onlyNumbersWarning} onInputToWeight={onInputToWeight} onToggleCustomWeights={onToggleCustomWeights}
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
-                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} />
+                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} onGenerateResults={onGenerateResults} />
             </div>
             <div className="food-main-divider">
             </div>
             <div className="food-main-right">
-                <FoodOutput />
+                <FoodOutput foodAggregations={foodAggregations} />
             </div>
         </div>
     );
 }
 
-function FoodInput({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara, merInformation, onToggleMerInformation, onToggleCustomWeights }:
+function FoodInput({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputRow, onRemoveInputRow,
+    onInputToMatvara, merInformation, onToggleMerInformation, onToggleCustomWeights, onGenerateResults }:
     {
         onlyNumbersWarning: { active: boolean, index: number },
         onInputToWeight: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
@@ -293,6 +259,7 @@ function FoodInput({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputR
         merInformation: boolean,
         onToggleMerInformation: () => void,
         onToggleCustomWeights: (index: number) => void,
+        onGenerateResults: () => void,
     }) {
     return (
         <div className="food-input">
@@ -325,7 +292,7 @@ function FoodInput({ onlyNumbersWarning, onInputToWeight, inputRows, onAddInputR
             <button className="lagg-till-fler" onClick={onAddInputRow}>
                 <FontAwesomeIcon size="lg" className="plus-icon" icon={faPlus} />Lägg till fler
             </button>
-            <button className="generera-resultat">
+            <button className="generera-resultat" onClick={onGenerateResults}>
                 <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
                 Generera resultat
             </button>
@@ -383,7 +350,7 @@ function FoodInputRows({ onlyNumbersWarning, onInputToWeight, onToggleCustomWeig
     );
 }
 
-function FoodOutput() {
+function FoodOutput({ foodAggregations }: { foodAggregations: Array<FoodAggregation>}) {
     const [itemVisibility, setItemVisibility] = useState(Array(3).fill(true));
     const [showGuidelines, setShowGuidelines] = useState(false);
 
@@ -400,21 +367,22 @@ function FoodOutput() {
     return (
         <>
             <div className="food-output">
-                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} />
-                <FoodLegend itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility} onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} />
+                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} foodAggregations={foodAggregations} />
+                <FoodLegend itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility}
+                    onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} foodAggregations={foodAggregations} />
             </div>
         </>
     );
 }
 
-function FoodGraph({ itemVisibility, showGuidelines }: { itemVisibility: Array<boolean>, showGuidelines: boolean}) {
+function FoodGraph({ itemVisibility, showGuidelines, foodAggregations }: { itemVisibility: Array<boolean>, showGuidelines: boolean, foodAggregations: Array<FoodAggregation>}) {
     const nutrientPropertyKeys: Array<keyof FoodAggregation> = ["jod", "jarn", "kalcium", "kalium", "magnesium", "selen", "zink",
         "a", "b1", "b2", "b3", "b6", "b9", "b12", "c", "d", "e"];
     const nutrientLabels: Array<string> = ["Jod", "Järn", "Kalcium", "Kalium", "Magnesium", "Selen", "Zink", 
         "A", "B1", "B2", "B3", "B6", "B9", "B12", "C", "D", "E"];
 
     const allBars = nutrientPropertyKeys.map((property: keyof FoodAggregation, index: number) => (
-        <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} foodItems={fakeFoods} />
+        <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} foodItems={foodAggregations} />
     ));
 
     const allLabels = nutrientLabels.map((label: string, index: number) => (
@@ -480,14 +448,15 @@ function FoodGraphCanvasBarContainer({ nutrientProperty, foodItems, itemVisibili
 }
 
 
-function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines }:
+function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines, foodAggregations }:
     {
         itemVisibility: Array<boolean>,
         onToggleVisibility: (id: number) => void,
         onToggleGuidelines: () => void,
-        showGuidelines: boolean
+        showGuidelines: boolean,
+        foodAggregations: Array<FoodAggregation>
     }) {
-    const allLegends = fakeFoods.map((item: FoodAggregation, index: number) => (
+    const allLegends = foodAggregations.map((item: FoodAggregation, index: number) => (
         <div key={index} className="food-legend-and-switch">
             <div className="food-legend-container">
                 <div className="food-legend-container-left">
