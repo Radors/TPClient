@@ -51,9 +51,9 @@ export default function App() {
 }
 
 function FoodManager() {
-    const startingPoint = [{ id: 0, matvara: ""},
-                           { id: 1, matvara: ""},
-                           { id: 2, matvara: ""}]
+    const startingPoint = [{ id: 0, matvara: "", expanded: false },
+                           { id: 1, matvara: "", expanded: false },
+                           { id: 2, matvara: "", expanded: false }]
     const [inputRows, setInputRows] = useState(startingPoint);
 
     const [demo, setDemo] = useState(false);
@@ -67,8 +67,8 @@ function FoodManager() {
         setIsRequesting(true);
 
         const url = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/processinput";
-        const foodInputs: Array<FoodInput> = inputRows.filter(row => row.matvara !== "").map((row: { id: number, matvara: string}) => {
-            const foodInput: FoodInput = { frontendId: row.id, name: row.matvara};
+        const foodInputs: Array<FoodInput> = inputRows.filter(item => item.matvara !== "").map((item: { id: number, matvara: string}) => {
+            const foodInput: FoodInput = { frontendId: item.id, name: item.matvara};
             return foodInput;
         });
 
@@ -127,7 +127,14 @@ function FoodManager() {
         }
     }, [onlyNumbersWarning]);
 
-
+    function onExpandMatvara(id: number) {
+        const newInputRows = inputRows.map(item =>
+            item.id === id
+            ? { ...item, expanded: true }
+            : { ...item, expanded: false }
+        );
+        setInputRows(newInputRows);
+    }
 
     function onStartDemonstration() {
         if (!demo) {
@@ -149,7 +156,7 @@ function FoodManager() {
 
     function onAddInputRow() {
         const newInputRows = inputRows.slice();
-        newInputRows.push({ id: (newInputRows[newInputRows.length - 1].id + 1), matvara: ""});
+        newInputRows.push({ id: (newInputRows[newInputRows.length - 1].id + 1), matvara: "", expanded: false});
         setInputRows(newInputRows);
     }
 
@@ -164,12 +171,13 @@ function FoodManager() {
             <TopBar onStartDemonstration={onStartDemonstration} onToggleMerInformation={onToggleMerInformation} />
             <FoodMain inputRows={inputRows}
                 onAddInputRow={onAddInputRow}
-                onRemoveInputRow={onRemoveInputRow} 
+                onRemoveInputRow={onRemoveInputRow}
                 merInformation={merInformation}
                 onInputToMatvara={onInputToMatvara}
-                onToggleMerInformation={onToggleMerInformation} 
+                onToggleMerInformation={onToggleMerInformation}
                 foodAggregations={foodAggregations}
                 onGenerateResults={onGenerateResults}
+                onExpandMatvara={onExpandMatvara}
             />
         </div>
     );
@@ -191,10 +199,10 @@ function TopBar({ onStartDemonstration, onToggleMerInformation }: { onStartDemon
     );
 }
 
-function FoodMain({inputRows, onAddInputRow, onRemoveInputRow,
-    onInputToMatvara, merInformation, onToggleMerInformation, foodAggregations, onGenerateResults }:
+function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
+    merInformation, onToggleMerInformation, foodAggregations, onGenerateResults, onExpandMatvara }:
     {
-        inputRows: Array<{ id: number, matvara: string}>,
+        inputRows: Array<{ id: number, matvara: string, expanded: boolean}>,
         onAddInputRow: () => void,
         onRemoveInputRow: (index: number) => void,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
@@ -202,13 +210,16 @@ function FoodMain({inputRows, onAddInputRow, onRemoveInputRow,
         onToggleMerInformation: () => void,
         foodAggregations: Array<FoodProduct>
         onGenerateResults: () => void,
+        onExpandMatvara: (id: number) => void,
     }) {
     return (
         <div className="food-main">
             <div className="food-main-left">
-                <FoodInput
+                <FoodInputOuter
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
-                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} onGenerateResults={onGenerateResults} />
+                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} onGenerateResults={onGenerateResults}
+                    onExpandMatvara={onExpandMatvara}
+                />
             </div>
             <div className="food-main-divider">
             </div>
@@ -219,16 +230,17 @@ function FoodMain({inputRows, onAddInputRow, onRemoveInputRow,
     );
 }
 
-function FoodInput({ inputRows, onAddInputRow, onRemoveInputRow,
-    onInputToMatvara, merInformation, onToggleMerInformation, onGenerateResults }:
+function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
+    merInformation, onToggleMerInformation, onGenerateResults, onExpandMatvara }:
     {
-        inputRows: Array<{ id: number, matvara: string}>,
+        inputRows: Array<{ id: number, matvara: string, expanded: boolean}>,
         onAddInputRow: () => void,
         onRemoveInputRow: (index: number) => void,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
         merInformation: boolean,
         onToggleMerInformation: () => void,
         onGenerateResults: () => void,
+        onExpandMatvara: (id: number) => void,
     }) {
     return (
         <div className="food-input">
@@ -245,43 +257,55 @@ function FoodInput({ inputRows, onAddInputRow, onRemoveInputRow,
                     </div>
                 </div>
             </div>
-            <div className="food-input-grid">
-                <div className="food-input-heading-container">Matvara <br /> (exempelvis Lax)</div>
-                <div className="food-input-heading-container"
-                    style={{
-                        opacity: `${inputRows.length == 1 ? "30%" : "100%"}`,
-                    }}>
-                    Ta bort<br />matvara
+            <div className="food-inputs-column-outer">
+
+                <FoodInputs onInputToMatvara={onInputToMatvara} inputRows={inputRows} onRemoveInputRow={onRemoveInputRow} onExpandMatvara={onExpandMatvara} />
+
+                <div className="lagg-till-fler-outer">
+                    <button className="lagg-till-fler" onClick={onAddInputRow}>
+                        <FontAwesomeIcon size="lg" className="plus-icon" icon={faPlus} />
+                        Lägg till fler
+                    </button>
                 </div>
-                <FoodInputRows onInputToMatvara={onInputToMatvara}
-                    inputRows={inputRows} onRemoveInputRow={onRemoveInputRow} />
-                <button className="lagg-till-fler" onClick={onAddInputRow}>
-                    <FontAwesomeIcon size="lg" className="plus-icon" icon={faPlus} />Lägg till fler
+                <button className="generera-resultat" onClick={onGenerateResults}>
+                    <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
+                    Visa näringsvärden
                 </button>
             </div>
-            <button className="generera-resultat" onClick={onGenerateResults}>
-                <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
-                Generera resultat
-            </button>
         </div>
     );
 }
 
-function FoodInputRows({ onRemoveInputRow, inputRows, onInputToMatvara }:
+function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMatvara }:
     {
         onRemoveInputRow: (index: number) => void,
-        inputRows: Array<{ id: number, matvara: string}>,
-        onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void
+        inputRows: Array<{ id: number, matvara: string, expanded: boolean}>,
+        onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
+        onExpandMatvara: (id: number) => void
     }) {
-    const content = inputRows.map((row: { id: number, matvara: string}, index: number) => (
-        <Fragment key={row.id}>
-            <input className="matvara" type="text" value={row.matvara} onChange={(event) => onInputToMatvara(event, index)} placeholder="Matvara" />
-            <button className="ta-bort" onClick={() => onRemoveInputRow(index)}
+    const content = inputRows.map((row: { id: number, matvara: string, expanded: boolean}, index: number) => (
+        <Fragment key={row.id}> 
+            <div className="food-item-column"
                 style={{
-                    visibility: `${inputRows.length == 1 ? "hidden" : "visible"}`,
-            }}>
-                <FontAwesomeIcon size="lg" icon={faCircleMinus} />
-            </button>
+                    border: row.expanded ? "2px solid lightgray" : "none",
+                }}>
+                <div className="food-item-upper-permanent">
+                    <input className="matvara" type="text" value={row.matvara} onChange={(event) => onInputToMatvara(event, index)} onClick={() => onExpandMatvara(row.id)} placeholder="Matvara" />
+                    <button className="ta-bort" onClick={() => onRemoveInputRow(index)}
+                        style={{
+                            visibility: inputRows.length == 1 ? "hidden" : "visible",
+                        }}>
+                        <FontAwesomeIcon size="lg" icon={faCircleMinus} />
+                    </button>
+                </div>
+                <div className="food-input-bottom-expander"
+                    style={{
+                        display: row.expanded ? 'flex' : 'none',
+                    }}>
+                    <div className="expander-inner">
+                    </div>
+                </div>
+            </div>
         </Fragment>
     ));
 
