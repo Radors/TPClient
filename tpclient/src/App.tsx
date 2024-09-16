@@ -57,12 +57,17 @@ function FoodManager() {
     const [foodProducts, setFoodProducts] = useState(Array<FoodProduct>);
 
 
-    const query = useMemo(() => inputRows.find(e => e.active)?.query, [inputRows]);
+    const activeInput = useMemo(() => {
+        const inputRow = inputRows.find(e => e.active);
+        return { query: inputRow?.query, id: inputRow?.id };
+    }, [inputRows]);
+
     const [debouncedQuery, setDebouncedQuery] = useState("");
 
 
     const fetchData = useCallback(async (activeItem: { id: number, query: string, active: boolean }) => {
         try {
+            console.log("fetching!")
             const urlBasicSearch = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/basic";
             const response = await fetch(`${urlBasicSearch}?query=${activeItem.query}&frontendid=${activeItem.id}`);
 
@@ -77,8 +82,8 @@ function FoodManager() {
 
 
     useEffect(() => {
-        if (typeof query === "string" && query.trim() !== "") {
-
+        if (typeof activeInput.query === "string" && activeInput.query.trim() !== "") {
+            const query = activeInput.query;
             const handler = setTimeout(() => {
                 setDebouncedQuery(query);
             }, 300);
@@ -87,7 +92,7 @@ function FoodManager() {
                 clearTimeout(handler);
             };
         }
-    }, [query]);
+    }, [activeInput.query, activeInput.id]);
 
 
     useEffect(() => {
@@ -145,7 +150,7 @@ function FoodManager() {
         const newInputRows = inputRows.map(item =>
             item.id === id
             ? { ...item, active: true }
-            : { ...item, query: "", active: false }
+            : { ...item, active: false }
         );
         setInputRows(newInputRows);
     }
@@ -162,7 +167,7 @@ function FoodManager() {
         const newInputRows = inputRows.map(item =>
             item.id === inputRows[index].id
                 ? { ...item, active: true }
-                : { ...item, query: "", active: false }
+                : { ...item, active: false }
         );
         newInputRows[index].query = event.target.value;
         setInputRows(newInputRows);
