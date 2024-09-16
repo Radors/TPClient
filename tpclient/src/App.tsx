@@ -1,19 +1,13 @@
-﻿import { Fragment, useState, useEffect, useCallback } from 'react';
+﻿import { Fragment, useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfo, faPlay, faCircleMinus, faPlus, faSquarePollVertical, faXmark, } from '@fortawesome/free-solid-svg-icons';
 
-// Array<FoodInput> will be SENT to the server.
-interface FoodInput {
-    frontendId: number;
-    name: string;
-}
-
 // Array<FoodProduct> will be RECEIVED from the server.
 interface FoodProduct {
+    query: string;
     frontendId: number;
-    name: string; // Original input carried along / brought back ( not the name of any matched item(s) )
-    rejected: boolean;
+    name: string;
     // Nutrient percentages as decimal points
     jod: number;
     jarn: number;
@@ -51,56 +45,76 @@ export default function App() {
 }
 
 function FoodManager() {
-    const startingPoint = [{ id: 0, matvara: "", expanded: false },
-                           { id: 1, matvara: "", expanded: false },
-                           { id: 2, matvara: "", expanded: false }]
-    const [inputRows, setInputRows] = useState(startingPoint);
+    const startingPoint = [{ id: 0, query: "", active: false },
+                           { id: 1, query: "", active: false },
+                           { id: 2, query: "", active: false }]
 
+    const [inputRows, setInputRows] = useState(startingPoint);
     const [demo, setDemo] = useState(false);
     const [merInformation, setMerInformation] = useState(false);
     const [onlyNumbersWarning, setOnlyNumbersWarning] = useState({ active: false, index: 0 });
-    const [isRequesting, setIsRequesting] = useState(false);
-    const [foodAggregations, setFoodAggregations] = useState(Array<FoodProduct>);
 
-    const onGenerateResults = useCallback(async () => {
-        if (isRequesting) return;
-        setIsRequesting(true);
+    const [foodProducts, setFoodProducts] = useState(Array<FoodProduct>);
 
-        const url = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/processinput";
-        const foodInputs: Array<FoodInput> = inputRows.filter(item => item.matvara !== "").map((item: { id: number, matvara: string}) => {
-            const foodInput: FoodInput = { frontendId: item.id, name: item.matvara};
-            return foodInput;
-        });
 
+    const query = useMemo(() => inputRows.find(e => e.active)?.query, [inputRows]);
+    const [debouncedQuery, setDebouncedQuery] = useState("");
+
+
+    const fetchData = useCallback(async (activeItem: { id: number, query: string, active: boolean }) => {
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(foodInputs)
-            });
+            const urlBasicSearch = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/basic";
+            const response = await fetch(`${urlBasicSearch}?query=${activeItem.query}&frontendid=${activeItem.id}`);
 
             if (response.ok) {
-                const receivedFoodAggregations: Array<FoodProduct> = await response.json();
-                setFoodAggregations(receivedFoodAggregations);
+                const items: Array<FoodProduct> = await response.json();
+                setFoodProducts(items);
             }
-        } catch {
-            console.log("placeholder");
+        } catch (error) {
+            console.error(error);
         }
-        finally {
-            setIsRequesting(false);
+    }, []);
+
+
+    useEffect(() => {
+        if (typeof query === "string" && query.trim() !== "") {
+
+            const handler = setTimeout(() => {
+                setDebouncedQuery(query);
+            }, 300);
+
+            return () => {
+                clearTimeout(handler);
+            };
         }
-    }, [isRequesting, inputRows]);
+    }, [query]);
+
+
+    useEffect(() => {
+        if (debouncedQuery !== "") {
+            const activeItem = inputRows.find(e => e.active);
+            if (activeItem && activeItem.query === debouncedQuery) {
+                setDebouncedQuery("");
+                fetchData(activeItem);
+            }
+        }
+    }, [debouncedQuery, fetchData, inputRows]);
+
+
+
+
+
+
+
 
     useEffect(() => {
         const finalValues = ["Torsk", "Potatis", "Hollandaisesås"];
         function updateCurrentValues() {
             const newInputRows = inputRows.slice();
-            newInputRows[0].matvara = finalValues[0].slice(0, inputRows[0].matvara.length + 1);
-            newInputRows[1].matvara = finalValues[1].slice(0, inputRows[1].matvara.length + 1);
-            newInputRows[2].matvara = finalValues[2].slice(0, inputRows[2].matvara.length + 1);
-            if (inputRows[2].matvara == finalValues[2]) {
+            newInputRows[0].query = finalValues[0].slice(0, inputRows[0].query.length + 1);
+            newInputRows[1].query = finalValues[1].slice(0, inputRows[1].query.length + 1);
+            newInputRows[2].query = finalValues[2].slice(0, inputRows[2].query.length + 1);
+            if (inputRows[2].query == finalValues[2]) {
                 setDemo(false);
             }
             setInputRows(newInputRows);
@@ -130,8 +144,8 @@ function FoodManager() {
     function onExpandMatvara(id: number) {
         const newInputRows = inputRows.map(item =>
             item.id === id
-            ? { ...item, expanded: true }
-            : { ...item, expanded: false }
+            ? { ...item, active: true }
+            : { ...item, query: "", active: false }
         );
         setInputRows(newInputRows);
     }
@@ -145,8 +159,12 @@ function FoodManager() {
     }
 
     function onInputToMatvara(event: React.ChangeEvent<HTMLInputElement>, index: number) {
-        const newInputRows = inputRows.slice();
-        newInputRows[index].matvara = event.target.value;
+        const newInputRows = inputRows.map(item =>
+            item.id === inputRows[index].id
+                ? { ...item, active: true }
+                : { ...item, query: "", active: false }
+        );
+        newInputRows[index].query = event.target.value;
         setInputRows(newInputRows);
     }
 
@@ -156,7 +174,7 @@ function FoodManager() {
 
     function onAddInputRow() {
         const newInputRows = inputRows.slice();
-        newInputRows.push({ id: (newInputRows[newInputRows.length - 1].id + 1), matvara: "", expanded: false});
+        newInputRows.push({ id: (newInputRows[newInputRows.length - 1].id + 1), query: "", active: false});
         setInputRows(newInputRows);
     }
 
@@ -175,9 +193,8 @@ function FoodManager() {
                 merInformation={merInformation}
                 onInputToMatvara={onInputToMatvara}
                 onToggleMerInformation={onToggleMerInformation}
-                foodAggregations={foodAggregations}
-                onGenerateResults={onGenerateResults}
                 onExpandMatvara={onExpandMatvara}
+                foodProducts={foodProducts}
             />
         </div>
     );
@@ -200,46 +217,44 @@ function TopBar({ onStartDemonstration, onToggleMerInformation }: { onStartDemon
 }
 
 function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, foodAggregations, onGenerateResults, onExpandMatvara }:
+    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts }:
     {
-        inputRows: Array<{ id: number, matvara: string, expanded: boolean}>,
+        inputRows: Array<{ id: number, query: string, active: boolean}>,
         onAddInputRow: () => void,
         onRemoveInputRow: (index: number) => void,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
         merInformation: boolean,
         onToggleMerInformation: () => void,
-        foodAggregations: Array<FoodProduct>
-        onGenerateResults: () => void,
         onExpandMatvara: (id: number) => void,
+        foodProducts: Array<FoodProduct>
     }) {
     return (
         <div className="food-main">
             <div className="food-main-left">
                 <FoodInputOuter
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
-                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} onGenerateResults={onGenerateResults}
+                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation}
                     onExpandMatvara={onExpandMatvara}
                 />
             </div>
             <div className="food-main-divider">
             </div>
             <div className="food-main-right">
-                <FoodOutput foodAggregations={foodAggregations} />
+                <FoodOutput foodProducts={foodProducts} />
             </div>
         </div>
     );
 }
 
 function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onGenerateResults, onExpandMatvara }:
+    merInformation, onToggleMerInformation, onExpandMatvara }:
     {
-        inputRows: Array<{ id: number, matvara: string, expanded: boolean}>,
+        inputRows: Array<{ id: number, query: string, active: boolean}>,
         onAddInputRow: () => void,
         onRemoveInputRow: (index: number) => void,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
         merInformation: boolean,
         onToggleMerInformation: () => void,
-        onGenerateResults: () => void,
         onExpandMatvara: (id: number) => void,
     }) {
     return (
@@ -267,7 +282,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                         Lägg till fler
                     </button>
                 </div>
-                <button className="generera-resultat" onClick={onGenerateResults}>
+                <button className="generera-resultat" >
                     <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
                     Visa näringsvärden
                 </button>
@@ -279,18 +294,18 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
 function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMatvara }:
     {
         onRemoveInputRow: (index: number) => void,
-        inputRows: Array<{ id: number, matvara: string, expanded: boolean}>,
+        inputRows: Array<{ id: number, query: string, active: boolean}>,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
         onExpandMatvara: (id: number) => void
     }) {
-    const content = inputRows.map((row: { id: number, matvara: string, expanded: boolean}, index: number) => (
+    const content = inputRows.map((row: { id: number, query: string, active: boolean}, index: number) => (
         <Fragment key={row.id}> 
             <div className="food-item-column"
                 style={{
-                    border: row.expanded ? "2px solid lightgray" : "none",
+                    border: row.active ? "2px solid lightgray" : "none",
                 }}>
                 <div className="food-item-upper-permanent">
-                    <input className="matvara" type="text" value={row.matvara} onChange={(event) => onInputToMatvara(event, index)} onClick={() => onExpandMatvara(row.id)} placeholder="Matvara" />
+                    <input className="matvara" type="text" value={row.query} onChange={(event) => onInputToMatvara(event, index)} onClick={() => onExpandMatvara(row.id)} placeholder="Matvara" />
                     <button className="ta-bort" onClick={() => onRemoveInputRow(index)}
                         style={{
                             visibility: inputRows.length == 1 ? "hidden" : "visible",
@@ -300,7 +315,7 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                 </div>
                 <div className="food-input-bottom-expander"
                     style={{
-                        display: row.expanded ? 'flex' : 'none',
+                        display: row.active ? 'flex' : 'none',
                     }}>
                     <div className="expander-inner">
                     </div>
@@ -316,7 +331,7 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
     );
 }
 
-function FoodOutput({ foodAggregations }: { foodAggregations: Array<FoodProduct>}) {
+function FoodOutput({ foodProducts }: { foodProducts: Array<FoodProduct> }) {
     const [itemVisibility, setItemVisibility] = useState(Array(3).fill(true));
     const [showGuidelines, setShowGuidelines] = useState(false);
 
@@ -333,37 +348,37 @@ function FoodOutput({ foodAggregations }: { foodAggregations: Array<FoodProduct>
     return (
         <>
             <div className="food-output">
-                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} foodAggregations={foodAggregations} />
+                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} foodProducts={foodProducts} />
                 <FoodLegend itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility}
-                    onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} foodAggregations={foodAggregations} />
+                    onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} foodProducts={foodProducts} />
             </div>
         </>
     );
 }
 
-function FoodGraph({ itemVisibility, showGuidelines, foodAggregations }: { itemVisibility: Array<boolean>, showGuidelines: boolean, foodAggregations: Array<FoodProduct>}) {
+function FoodGraph({ itemVisibility, showGuidelines, foodProducts }: { itemVisibility: Array<boolean>, showGuidelines: boolean, foodProducts: Array<FoodProduct> }) {
     const nutrientPropertyKeys: Array<keyof FoodProduct> = ["jod", "jarn", "kalcium", "kalium", "magnesium", "selen", "zink",
         "a", "b1", "b2", "b3", "b6", "b9", "b12", "c", "d", "e"];
-    const nutrientLabels: Array<string> = ["Jod", "Järn", "Kalcium", "Kalium", "Magnesium", "Selen", "Zink", 
+    const nutrientLabels: Array<string> = ["Jod", "Järn", "Kalcium", "Kalium", "Magnesium", "Selen", "Zink",
         "A", "B1", "B2", "B3", "B6", "B9", "B12", "C", "D", "E"];
 
     const allBars = nutrientPropertyKeys.map((property: keyof FoodProduct, index: number) => (
-        <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} foodItems={foodAggregations} />
+        <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} foodProducts={foodProducts} />
     ));
 
     const allLabels = nutrientLabels.map((label: string, index: number) => (
-        <FoodGraphNutrientsContainer key={index} isMineral={(index<7) ? true : false} nutrient={label} />
+        <FoodGraphNutrientsContainer key={index} isMineral={(index < 7) ? true : false} nutrient={label} />
     ));
 
     return (
         <div className="food-graph">
             <div className="food-graph-canvas-limit-bar">
             </div>
-            <div className="food-graph-canvas"> 
+            <div className="food-graph-canvas">
                 {allBars}
             </div>
             <div className="food-graph-canvas-limit-bar"></div>
-            <div className="food-graph-guideline upperguide" style={{ visibility: `${showGuidelines ? "visible" : "hidden" }`}}></div>
+            <div className="food-graph-guideline upperguide" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}></div>
             <div className="food-graph-guideline midguide"></div>
             <div className="food-graph-guideline lowerguide" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}></div>
             <div className="food-graph-twohundred">200%</div>
@@ -377,7 +392,7 @@ function FoodGraph({ itemVisibility, showGuidelines, foodAggregations }: { itemV
     );
 }
 
-function FoodGraphNutrientsContainer({ isMineral, nutrient}: { isMineral: boolean; nutrient: string}) {
+function FoodGraphNutrientsContainer({ isMineral, nutrient }: { isMineral: boolean; nutrient: string }) {
     return (
         <div className={isMineral ? "mineral-text-container" : "vitamin-text-container"} >
             <div className={isMineral ? "mineral-text" : "vitamin-text"}>
@@ -388,15 +403,15 @@ function FoodGraphNutrientsContainer({ isMineral, nutrient}: { isMineral: boolea
 }
 
 const barColors: Array<string> = ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B",
-            "#E377C2", "#BCBD22", "#17BECF", "#AEC7E8", "#FFBB78", "#98DF8A", "#FF9896", "#C5B0D5"];
+    "#E377C2", "#BCBD22", "#17BECF", "#AEC7E8", "#FFBB78", "#98DF8A", "#FF9896", "#C5B0D5"];
 
-function FoodGraphCanvasBarContainer({ nutrientProperty, foodItems, itemVisibility }:
+function FoodGraphCanvasBarContainer({ nutrientProperty, foodProducts, itemVisibility }:
     {
         nutrientProperty: keyof FoodProduct,
-        foodItems: Array<FoodProduct>,
+        foodProducts: Array<FoodProduct>,
         itemVisibility: Array<boolean>
     }) {
-    const content = foodItems.map((item: FoodProduct, index: number) => (
+    const content = foodProducts.map((item: FoodProduct, index: number) => (
         <div key={index} className="food-graph-canvas-bar"
             style={{
                 backgroundColor: `${barColors[index]}`,
@@ -414,15 +429,15 @@ function FoodGraphCanvasBarContainer({ nutrientProperty, foodItems, itemVisibili
 }
 
 
-function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines, foodAggregations }:
+function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines, foodProducts }:
     {
         itemVisibility: Array<boolean>,
         onToggleVisibility: (id: number) => void,
         onToggleGuidelines: () => void,
         showGuidelines: boolean,
-        foodAggregations: Array<FoodProduct>
+        foodProducts: Array<FoodProduct>
     }) {
-    const allLegends = foodAggregations.map((item: FoodProduct, index: number) => (
+    const allLegends = foodProducts.map((item: FoodProduct, index: number) => (
         <div key={index} className="food-legend-and-switch">
             <div className="food-legend-container">
                 <div className="food-legend-colormark-outer">
@@ -467,3 +482,4 @@ function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, sh
         </div>
     );
 }
+

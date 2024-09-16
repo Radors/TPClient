@@ -222,10 +222,9 @@
 }
 
 .generera-resultat {
-    margin-right: 20px;
     display: flex;
     padding: 6px;
-    width: 95%;
+    width: 100%;
 }
 
 .resultat-icon {
@@ -395,6 +394,13 @@
     border: none;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
     width: 88%;
+}
+
+.food-legend-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 250px;
 }
 
 .food-legend-colormark-outer {
