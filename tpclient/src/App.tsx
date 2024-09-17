@@ -367,7 +367,9 @@ function SearchResults({title, items}: {title: string, items: Array<FoodProduct>
 
     const results = visibleItems.map((item: FoodProduct) => (
         <div className="search-item">
-            {item.name}
+            <p className="search-item-paragraph">
+                {item.name}
+            </p>
         </div>
     ));
     return (
