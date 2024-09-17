@@ -55,6 +55,7 @@ function FoodManager() {
     const [onlyNumbersWarning, setOnlyNumbersWarning] = useState({ active: false, index: 0 });
 
     const [foodProducts, setFoodProducts] = useState(Array<FoodProduct>);
+    const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState(Array<FoodProduct>);
 
 
     const activeInput = useMemo(() => {
@@ -200,6 +201,7 @@ function FoodManager() {
                 onToggleMerInformation={onToggleMerInformation}
                 onExpandMatvara={onExpandMatvara}
                 foodProducts={foodProducts}
+                foodProductsFromEmbeddings={foodProductsFromEmbeddings}
             />
         </div>
     );
@@ -222,7 +224,7 @@ function TopBar({ onStartDemonstration, onToggleMerInformation }: { onStartDemon
 }
 
 function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts }:
+    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts, foodProductsFromEmbeddings }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onAddInputRow: () => void,
@@ -231,7 +233,8 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
         merInformation: boolean,
         onToggleMerInformation: () => void,
         onExpandMatvara: (id: number) => void,
-        foodProducts: Array<FoodProduct>
+        foodProducts: Array<FoodProduct>,
+        foodProductsFromEmbeddings: Array<FoodProduct>
     }) {
     return (
         <div className="food-main">
@@ -239,7 +242,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
                 <FoodInputOuter
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
                     onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation}
-                    onExpandMatvara={onExpandMatvara}
+                    onExpandMatvara={onExpandMatvara} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
                 />
             </div>
             <div className="food-main-divider">
@@ -252,7 +255,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
 }
 
 function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onExpandMatvara }:
+    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts, foodProductsFromEmbeddings }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onAddInputRow: () => void,
@@ -261,6 +264,8 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         merInformation: boolean,
         onToggleMerInformation: () => void,
         onExpandMatvara: (id: number) => void,
+        foodProducts: Array<FoodProduct>,
+        foodProductsFromEmbeddings: Array<FoodProduct>,
     }) {
     return (
         <div className="food-input">
@@ -279,7 +284,8 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
             </div>
             <div className="food-inputs-column-outer">
 
-                <FoodInputs onInputToMatvara={onInputToMatvara} inputRows={inputRows} onRemoveInputRow={onRemoveInputRow} onExpandMatvara={onExpandMatvara} />
+                <FoodInputs onInputToMatvara={onInputToMatvara} inputRows={inputRows} onRemoveInputRow={onRemoveInputRow}
+                    onExpandMatvara={onExpandMatvara} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings} />
 
                 <div className="lagg-till-fler-outer">
                     <button className="lagg-till-fler" onClick={onAddInputRow}>
@@ -296,12 +302,14 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
     );
 }
 
-function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMatvara }:
+function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMatvara, foodProducts, foodProductsFromEmbeddings }:
     {
         onRemoveInputRow: (index: number) => void,
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
-        onExpandMatvara: (id: number) => void
+        onExpandMatvara: (id: number) => void,
+        foodProducts: Array<FoodProduct>,
+        foodProductsFromEmbeddings: Array<FoodProduct>,
     }) {
     const content = inputRows.map((row: { id: number, query: string, active: boolean}, index: number) => (
         <Fragment key={row.id}> 
@@ -318,11 +326,15 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                         <FontAwesomeIcon size="lg" icon={faCircleMinus} />
                     </button>
                 </div>
-                <div className="food-input-bottom-expander"
+                <div className="food-input-activated"
                     style={{
                         display: row.active ? 'flex' : 'none',
                     }}>
-                    <div className="expander-inner">
+                    <div className="search-results-splitter">
+                        <SearchResults title="Sökresultat" items={foodProducts} />
+                        <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} />
+                    </div>
+                    <div className="expander-toggles">
                     </div>
                 </div>
             </div>
@@ -333,6 +345,41 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
         <>
             {content}
         </>
+    );
+}
+
+function SearchResults({title, items}: {title: string, items: Array<FoodProduct>}) {
+    const [startIndex, setStartIndex] = useState(0);
+    const itemsPerPage = 8;
+
+    function onNextPage() {
+        if ((startIndex + itemsPerPage) < items.length) {
+            setStartIndex(startIndex + itemsPerPage)
+        }
+    }
+    function onPreviousPage() {
+        if ((startIndex - itemsPerPage) >= 0) {
+            setStartIndex(startIndex - itemsPerPage)
+        }
+    }
+
+    const visibleItems = items.slice(startIndex, (startIndex + itemsPerPage));
+
+    const results = visibleItems.map((item: FoodProduct) => (
+        <div className="search-item">
+            {item.name}
+        </div>
+    ));
+    return (
+        <div className="search-results">
+            <div className="search-results-title">{title}</div>
+            <div className="search-items-container">
+                {results}
+            </div>
+            <div className="select-page">
+
+            </div>
+        </div>
     );
 }
 
