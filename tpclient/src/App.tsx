@@ -502,7 +502,7 @@ function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, sh
                     ></div>
                 </div>
                 <div className="food-legend-label">
-                    {item.name}
+                     {item.name}
                 </div>
             </div>
             <div className="switch-container">
@@ -526,10 +526,8 @@ function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, sh
                 <div className="fler-stodlinjer">
                     Fler stödlinjer
                 </div>
-            </div>
-            <div className="visa-outer">
                 <div className="visa-container">
-                    Visa
+                    Visa i<br />grafen
                 </div>
             </div>
             {allLegends}

@@ -83,6 +83,7 @@
 .food-main {
     min-height: 550px;
     display: flex;
+    flex-direction: row;
 }
 
 .food-main-left {
@@ -200,6 +201,7 @@
     height: 10%;
     display: flex;
     justify-content: start;
+    border-bottom: 1px solid lightgray;
 }
 
 .search-items-container {
@@ -307,8 +309,6 @@
     box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 1px, rgba(0, 0, 0, 0.07) 0px 2px 2px, rgba(0, 0, 0, 0.07) 0px 4px 4px, rgba(0, 0, 0, 0.07) 0px 8px 8px, rgba(0, 0, 0, 0.07) 0px 16px 16px;
 }
 
-/* ||||||||||||||||||||||||||||||||||| */
-
 .ta-bort {
     background: none;
     border: none;
@@ -324,6 +324,7 @@
     margin-left: auto;
     display: flex;
     flex-direction: column;
+    width: 80%;
 }
 
 .food-graph {
@@ -349,7 +350,6 @@
 .food-graph-canvas-bar {
     width: 5px;
     height: 5%;
-    border-top: 1px solid white;
 }
 
 .food-graph-canvas-limit-bar {
@@ -413,7 +413,7 @@
 }
 
 .mineral-text-container, .vitamin-text-container {
-    width: 22px;
+    width: 5.9%;
     display: flex;
 }
 
@@ -441,11 +441,32 @@
 
 .food-legend-toprow {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.switch-container {
+    display: flex;
+    width: 12%;
+    justify-content: center;
+    align-items: center;
 }
 
 .fler-stodlinjer {
     margin-left: 5px;
+    width: 44%;
+    display: flex;
+    justify-content: start;
 }
+
+.visa-container {
+    width: 44%;
+    display: flex;
+    justify-content: end;
+    line-height: 15px;
+}
+
 
 .food-legend-and-switch {
     display: flex;
@@ -454,6 +475,7 @@
 
 .food-legend-container {
     display: flex;
+    justify-content: start;
     height: 25px;
     border-radius: 5px;
     background-color: white;
@@ -465,8 +487,8 @@
 .food-legend-label {
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
-    width: 250px;
+    mask-image: linear-gradient(to right, black 85%, transparent);
+    width: 100%;
 }
 
 .food-legend-colormark-outer {
@@ -480,13 +502,6 @@
     width: 30px;
     height: 12px;
     border-radius: 2px;
-}
-
-.switch-container {
-    display: flex;
-    width: 12%;
-    justify-content: center;
-    align-items: center;
 }
 
 .switch {
@@ -545,14 +560,40 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
-.visa-outer {
-    display: flex;
-    justify-content: end;
-    height: 30px;
+/* ||||||||||||||||||||||||||||| */
+
+@media (max-width: 988px) {
+    .food-manager {
+        width: 494px;
+    }
+    .food-main {
+        flex-direction: column;
+    }
+    .food-main-left {
+        width: 100%;
+    }
+    .food-main-right {
+        width: 100%;
+        margin-top: 30px;
+    }
+    .food-output {
+        margin-left: 15%;
+    }
 }
 
-.visa-container {
-    width: 12%;
-    display: flex;
-    justify-content: center;
+@media (max-width: 465px) {
+    .food-output {
+        margin-left: 10%;
+    }
+    .food-manager {
+        width: 100%;
+    }
+}
+@media (max-width: 400px) {
+    .top-bar-inner {
+        margin-left: 10px;
+    }
+    .demonstration {
+        margin-right: 10px;
+    }
 }
