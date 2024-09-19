@@ -59,8 +59,8 @@ function FoodManager() {
     const [merInformation, setMerInformation] = useState(false);
     const [onlyNumbersWarning, setOnlyNumbersWarning] = useState({ active: false, index: 0 });
 
-    const [foodProducts, setFoodProducts] = useState(Array<FoodProduct>);
-    const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState(Array<FoodProduct>);
+    const [foodProducts, setFoodProducts] = useState<{ products: Array<FoodProduct>; id: number }>({ products: [], id: -1 });
+    const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: Array<FoodProduct>; id: number }>({ products: [], id: -1 });
 
 
     const activeInput = useMemo(() => {
@@ -81,10 +81,10 @@ function FoodManager() {
             if (response.ok) {
                 const items: Array<FoodProduct> = await response.json();
                 if (searchType == SearchType.Basic) {
-                    setFoodProducts(items);
+                    setFoodProducts({ products: items, id: activeItem.id });
                 }
                 else if (searchType == SearchType.Embeddings) {
-                    setFoodProductsFromEmbeddings(items)
+                    setFoodProductsFromEmbeddings({ products: items, id: activeItem.id })
                 }
             }
         } catch (error) {
@@ -245,8 +245,8 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
         merInformation: boolean,
         onToggleMerInformation: () => void,
         onExpandMatvara: (id: number) => void,
-        foodProducts: Array<FoodProduct>,
-        foodProductsFromEmbeddings: Array<FoodProduct>
+        foodProducts: { products: Array<FoodProduct>; id: number },
+        foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number }
     }) {
     return (
         <div className="food-main">
@@ -260,7 +260,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
             <div className="food-main-divider">
             </div>
             <div className="food-main-right">
-                <FoodOutput foodProducts={foodProducts} />
+                <FoodOutput />
             </div>
         </div>
     );
@@ -276,8 +276,8 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         merInformation: boolean,
         onToggleMerInformation: () => void,
         onExpandMatvara: (id: number) => void,
-        foodProducts: Array<FoodProduct>,
-        foodProductsFromEmbeddings: Array<FoodProduct>,
+        foodProducts: { products: Array<FoodProduct>; id: number },
+        foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
     }) {
     return (
         <div className="food-input">
@@ -320,8 +320,8 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
         onExpandMatvara: (id: number) => void,
-        foodProducts: Array<FoodProduct>,
-        foodProductsFromEmbeddings: Array<FoodProduct>,
+        foodProducts: { products: Array<FoodProduct>; id: number },
+        foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
     }) {
     const content = inputRows.map((row: { id: number, query: string, active: boolean}, index: number) => (
         <Fragment key={row.id}> 
@@ -343,8 +343,8 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                         display: row.active ? 'flex' : 'none',
                     }}>
                     <div className="search-results-splitter">
-                        <SearchResults title="Sökresultat" items={foodProducts} />
-                        <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} />
+                        <SearchResults title="Sökresultat" items={foodProducts} activeId={row.id}  />
+                        <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} />
                     </div>
                     <div className="expander-toggles">
                     </div>
@@ -360,12 +360,12 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
     );
 }
 
-function SearchResults({title, items}: {title: string, items: Array<FoodProduct>}) {
+function SearchResults({ title, items, activeId }: { title: string, items: { products: Array<FoodProduct>; id: number }, activeId: number }) {
     const [startIndex, setStartIndex] = useState(0);
     const itemsPerPage = 8;
 
     function onNextPage() {
-        if ((startIndex + itemsPerPage) < items.length) {
+        if ((startIndex + itemsPerPage) < items.products.length) {
             setStartIndex(startIndex + itemsPerPage)
         }
     }
@@ -375,15 +375,20 @@ function SearchResults({title, items}: {title: string, items: Array<FoodProduct>
         }
     }
 
-    const visibleItems = items.slice(startIndex, (startIndex + itemsPerPage));
+    const visibleItems = items.products.slice(startIndex, (startIndex + itemsPerPage));
 
-    const results = visibleItems.map((item: FoodProduct) => (
-        <div className="search-item">
-            <p className="search-item-paragraph">
-                {item.name}
-            </p>
-        </div>
-    ));
+    const results = visibleItems.map((item: FoodProduct) => {
+        if (items.id !== activeId) {
+            return;
+        }
+        return (
+            <div className="search-item">
+                <p className="search-item-paragraph">
+                    {item.name}
+                </p>
+            </div>
+        );
+    });
     return (
         <div className="search-results">
             <div className="search-results-title">{title}</div>
@@ -397,7 +402,7 @@ function SearchResults({title, items}: {title: string, items: Array<FoodProduct>
     );
 }
 
-function FoodOutput({ foodProducts }: { foodProducts: Array<FoodProduct> }) {
+function FoodOutput() {
     const [itemVisibility, setItemVisibility] = useState(Array(3).fill(true));
     const [showGuidelines, setShowGuidelines] = useState(false);
 
@@ -411,12 +416,14 @@ function FoodOutput({ foodProducts }: { foodProducts: Array<FoodProduct> }) {
         setShowGuidelines(!showGuidelines);
     }
 
+
+    const EmptyArrayToAvoidErrorForNow: Array<FoodProduct> = []; /* |||||||||||||||||||||| */
     return (
         <>
             <div className="food-output">
-                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} foodProducts={foodProducts} />
+                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} foodProducts={EmptyArrayToAvoidErrorForNow} />
                 <FoodLegend itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility}
-                    onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} foodProducts={foodProducts} />
+                    onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} foodProducts={EmptyArrayToAvoidErrorForNow} />
             </div>
         </>
     );
