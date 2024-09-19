@@ -2,6 +2,7 @@
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfo, faPlay, faCircleMinus, faPlus, faSquarePollVertical, faXmark, } from '@fortawesome/free-solid-svg-icons';
+import { useMediaQuery } from 'react-responsive'
 
 // Array<FoodProduct> will be RECEIVED from the server.
 interface FoodProduct {
@@ -346,8 +347,6 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                         <SearchResults title="Sökresultat" items={foodProducts} activeId={row.id}  />
                         <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} />
                     </div>
-                    <div className="expander-toggles">
-                    </div>
                 </div>
             </div>
         </Fragment>
@@ -375,6 +374,9 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
         }
     }
 
+    const verySmallScreen = useMediaQuery({ maxWidth: 420 });
+    const smallScreen = useMediaQuery({ maxWidth: 470 });
+
     const visibleItems = items.products.slice(startIndex, (startIndex + itemsPerPage));
 
     const results = visibleItems.map((item: FoodProduct) => {
@@ -384,7 +386,7 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
         return (
             <div className="search-item">
                 <p className="search-item-paragraph">
-                    {item.name}
+                    {item.name.slice(0, verySmallScreen ? 50 : (smallScreen ? 60 : 70))}
                 </p>
             </div>
         );
