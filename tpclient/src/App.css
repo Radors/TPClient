@@ -110,6 +110,7 @@
     margin-left: 10px;
     margin-right: 15px;
     margin-top: 20px;
+    max-width: 100%;
 }
 
 .mer-information-outer {
@@ -194,6 +195,7 @@
     display: flex;
     flex-direction: column;
     padding-left: 10px;
+    width: 50%; /* Already set */
 }
 
 .search-results-title {
@@ -215,6 +217,7 @@
 
 .search-item {
     width: 100%;
+    /* max-width: 222px; */
     height: 12.5%;
     display: flex;
     align-items: center;
@@ -222,9 +225,16 @@
     padding: 4px;
     box-shadow: rgba(0, 0, 0, 0.04) 0px 3px 5px;
     border-radius: 10px;
+    cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
-    cursor: pointer;
+}
+
+.search-item-paragraph {
+    width: 100%;
+    display: flex;
+    justify-content: start;
+    mask-image: linear-gradient(to right, black 85%, transparent);
 }
 
 .search-item:hover {
@@ -233,13 +243,6 @@
 
 .search-item:focus-visible {
     box-shadow: inset 0 0 0 2px #535bf2;
-}
-
-.search-item-paragraph {
-    width: 100%;
-    display: flex;
-    justify-content: start;
-    mask-image: linear-gradient(to right, black 85%, transparent);
 }
 
 .select-page {

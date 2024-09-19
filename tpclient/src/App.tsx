@@ -28,6 +28,11 @@ interface FoodProduct {
     e: number;
 }
 
+enum SearchType {
+    Basic,
+    Embeddings
+}
+
 export default function App() {
     return (
         <div className="outermost">
@@ -66,15 +71,21 @@ function FoodManager() {
     const [debouncedQuery, setDebouncedQuery] = useState("");
 
 
-    const fetchData = useCallback(async (activeItem: { id: number, query: string, active: boolean }) => {
+    const fetchData = useCallback(async (activeItem: { id: number, query: string, active: boolean }, searchType: SearchType) => {
+        const urlBase = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/";
+        const urlChoice = (searchType == SearchType.Basic) ? "basic" : "embeddings";
         try {
             console.log("fetching!")
-            const urlBasicSearch = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/basic";
-            const response = await fetch(`${urlBasicSearch}?query=${activeItem.query}&frontendid=${activeItem.id}`);
+            const response = await fetch(`${urlBase}${urlChoice}?query=${activeItem.query}&frontendid=${activeItem.id}`);
 
             if (response.ok) {
                 const items: Array<FoodProduct> = await response.json();
-                setFoodProducts(items);
+                if (searchType == SearchType.Basic) {
+                    setFoodProducts(items);
+                }
+                else if (searchType == SearchType.Embeddings) {
+                    setFoodProductsFromEmbeddings(items)
+                }
             }
         } catch (error) {
             console.error(error);
@@ -87,7 +98,7 @@ function FoodManager() {
             const query = activeInput.query;
             const handler = setTimeout(() => {
                 setDebouncedQuery(query);
-            }, 300);
+            }, 200);
 
             return () => {
                 clearTimeout(handler);
@@ -101,7 +112,8 @@ function FoodManager() {
             const activeItem = inputRows.find(e => e.active);
             if (activeItem && activeItem.query === debouncedQuery) {
                 setDebouncedQuery("");
-                fetchData(activeItem);
+                fetchData(activeItem, SearchType.Basic);
+                fetchData(activeItem, SearchType.Embeddings);
             }
         }
     }, [debouncedQuery, fetchData, inputRows]);
