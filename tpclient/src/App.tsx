@@ -99,7 +99,7 @@ function FoodManager() {
             const query = activeInput.query;
             const handler = setTimeout(() => {
                 setDebouncedQuery(query);
-            }, 200);
+            }, 275);
 
             return () => {
                 clearTimeout(handler);
@@ -379,12 +379,12 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
 
     const visibleItems = items.products.slice(startIndex, (startIndex + itemsPerPage));
 
-    const results = visibleItems.map((item: FoodProduct) => {
+    const results = visibleItems.map((item: FoodProduct, index: number) => {
         if (items.id !== activeId) {
             return;
         }
         return (
-            <div className="search-item">
+            <div key={index} className="search-item">
                 <p className="search-item-paragraph">
                     {item.name.slice(0, verySmallScreen ? 50 : (smallScreen ? 60 : 70))}
                 </p>
