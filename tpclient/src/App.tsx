@@ -58,7 +58,6 @@ function FoodManager() {
     const [inputRows, setInputRows] = useState(startingPoint);
     const [demo, setDemo] = useState(false);
     const [merInformation, setMerInformation] = useState(false);
-    const [onlyNumbersWarning, setOnlyNumbersWarning] = useState({ active: false, index: 0 });
 
     const [foodProducts, setFoodProducts] = useState<{ products: Array<FoodProduct>; id: number }>({ products: [], id: -1 });
     const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: Array<FoodProduct>; id: number }>({ products: [], id: -1 });
@@ -149,22 +148,18 @@ function FoodManager() {
         };
     }, [demo, inputRows]);
 
-    useEffect(() => {
-        let id: ReturnType<typeof setTimeout>;
-        if (onlyNumbersWarning.active) {
-            id = setTimeout(() => { setOnlyNumbersWarning({ active: false, index: 0 }) }, 1500);
-        }
-
-        return () => {
-            clearTimeout(id);
-        }
-    }, [onlyNumbersWarning]);
-
     function onExpandMatvara(id: number) {
         const newInputRows = inputRows.map(item =>
             item.id === id
             ? { ...item, active: true }
             : { ...item, active: false }
+        );
+        setInputRows(newInputRows);
+    }
+
+    function onHideActive() {
+        const newInputRows = inputRows.map(item =>
+            ({ ...item, active: false })
         );
         setInputRows(newInputRows);
     }
@@ -215,6 +210,7 @@ function FoodManager() {
                 onExpandMatvara={onExpandMatvara}
                 foodProducts={foodProducts}
                 foodProductsFromEmbeddings={foodProductsFromEmbeddings}
+                onHideActive={onHideActive}
             />
         </div>
     );
@@ -237,7 +233,7 @@ function TopBar({ onStartDemonstration, onToggleMerInformation }: { onStartDemon
 }
 
 function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts, foodProductsFromEmbeddings }:
+    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts, foodProductsFromEmbeddings, onHideActive }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onAddInputRow: () => void,
@@ -247,7 +243,8 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
         onToggleMerInformation: () => void,
         onExpandMatvara: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
-        foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number }
+        foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
+        onHideActive: () => void
     }) {
     return (
         <div className="food-main">
@@ -256,6 +253,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
                     onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation}
                     onExpandMatvara={onExpandMatvara} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
+                    onHideActive={onHideActive}
                 />
             </div>
             <div className="food-main-divider">
@@ -268,7 +266,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
 }
 
 function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts, foodProductsFromEmbeddings }:
+    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts, foodProductsFromEmbeddings, onHideActive }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onAddInputRow: () => void,
@@ -279,6 +277,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         onExpandMatvara: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
+        onHideActive: () => void
     }) {
     return (
         <div className="food-input">
@@ -289,7 +288,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                 <div className="mer-information-container">
                     <div className="mer-information-left"></div>
                     <div className="mer-information-right">
-                        <button className="remove-mer-information" onClick={onToggleMerInformation}>
+                        <button className="click-to-hide" onClick={onToggleMerInformation}>
                             <FontAwesomeIcon icon={faXmark} size="lg" />
                         </button>
                     </div>
@@ -298,7 +297,8 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
             <div className="food-inputs-column-outer">
 
                 <FoodInputs onInputToMatvara={onInputToMatvara} inputRows={inputRows} onRemoveInputRow={onRemoveInputRow}
-                    onExpandMatvara={onExpandMatvara} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings} />
+                    onExpandMatvara={onExpandMatvara} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
+                    onHideActive={onHideActive} />
 
                 <div className="lagg-till-fler-outer">
                     <button className="lagg-till-fler" onClick={onAddInputRow}>
@@ -315,7 +315,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
     );
 }
 
-function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMatvara, foodProducts, foodProductsFromEmbeddings }:
+function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMatvara, foodProducts, foodProductsFromEmbeddings, onHideActive }:
     {
         onRemoveInputRow: (index: number) => void,
         inputRows: Array<{ id: number, query: string, active: boolean}>,
@@ -323,12 +323,13 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
         onExpandMatvara: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
+        onHideActive: () => void
     }) {
     const content = inputRows.map((row: { id: number, query: string, active: boolean}, index: number) => (
         <Fragment key={row.id}> 
             <div className="food-item-column"
                 style={{
-                    border: row.active ? "2px solid lightgray" : "none",
+                    border: row.active ? "1px solid lightgray" : "none",
                 }}>
                 <div className="food-item-upper-permanent">
                     <input className="matvara" type="text" value={row.query} onChange={(event) => onInputToMatvara(event, index)} onClick={() => onExpandMatvara(row.id)} placeholder="Matvara" />
@@ -347,6 +348,9 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                         <SearchResults title="Sökresultat" items={foodProducts} activeId={row.id}  />
                         <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} />
                     </div>
+                    <button className="click-to-hide hide-active" onClick={onHideActive}>
+                        <FontAwesomeIcon icon={faXmark} size="lg" />
+                    </button>
                 </div>
             </div>
         </Fragment>
