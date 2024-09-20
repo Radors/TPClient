@@ -303,8 +303,8 @@
 
 .lagg-till-fler {
     display: flex;
-    margin-top: 5px;
-    margin-bottom: 16px;
+    margin-top: 10px;
+    margin-bottom: 20px;
     width: 220px;
     padding: 6px;
 }
