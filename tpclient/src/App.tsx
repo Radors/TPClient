@@ -1,7 +1,7 @@
 ﻿import { Fragment, useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfo, faPlay, faCircleMinus, faPlus, faSquarePollVertical, faXmark, } from '@fortawesome/free-solid-svg-icons';
+import { faInfo, faPlay, faCircleMinus, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, } from '@fortawesome/free-solid-svg-icons';
 import { useMediaQuery } from 'react-responsive'
 
 // Array<FoodProduct> will be RECEIVED from the server.
@@ -337,7 +337,7 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                         style={{
                             visibility: inputRows.length == 1 ? "hidden" : "visible",
                         }}>
-                        <FontAwesomeIcon size="lg" icon={faCircleMinus} />
+                        <FontAwesomeIcon size="xl" icon={faCircleXmark} />
                     </button>
                 </div>
                 <div className="food-input-activated"
@@ -368,6 +368,7 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
     const itemsPerPage = 8;
 
     function onNextPage() {
+        console.log(items);
         if ((startIndex + itemsPerPage) < items.products.length) {
             setStartIndex(startIndex + itemsPerPage)
         }
@@ -376,7 +377,16 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
         if ((startIndex - itemsPerPage) >= 0) {
             setStartIndex(startIndex - itemsPerPage)
         }
+
     }
+
+    const isLoading = (items.id !== activeId);
+
+    useEffect(() => {
+        if (isLoading) {
+            setStartIndex(0);
+        }
+    }, [isLoading]);
 
     const verySmallScreen = useMediaQuery({ maxWidth: 420 });
     const smallScreen = useMediaQuery({ maxWidth: 470 });
@@ -384,7 +394,7 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
     const visibleItems = items.products.slice(startIndex, (startIndex + itemsPerPage));
 
     const results = visibleItems.map((item: FoodProduct, index: number) => {
-        if (items.id !== activeId) {
+        if (isLoading) {
             return;
         }
         return (
@@ -396,14 +406,25 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
         );
     });
     return (
-        <div className="search-results">
+        <div className="search-results"> 
             <div className="search-results-title">{title}</div>
             <div className="search-items-container">
                 {results}
             </div>
-            <div className="select-page">
-
-            </div>
+            {!isLoading && (
+                <div className="select-page"
+                    style={{
+                        display: items.products.length > 8 ? "flex" : "none"
+                    }}>
+                    <button className="select-page-button" onClick={onPreviousPage}>
+                        <FontAwesomeIcon icon={faArrowLeft} className="select-page-icon" />
+                    </button>
+                    <div className="sida">Sida</div>
+                    <button className="select-page-button" onClick={onNextPage}>
+                        <FontAwesomeIcon icon={faArrowRight} className="select-page-icon" />
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
