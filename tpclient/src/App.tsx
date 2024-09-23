@@ -295,12 +295,12 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                 display: merInformation ? "flex" : "none",
             }}>
                 <div className="mer-information-container">
-                    <div className="mer-information-left"></div>
-                    <div className="mer-information-right">
-                        <button className="click-to-hide" onClick={onToggleMerInformation}>
-                            <FontAwesomeIcon icon={faXmark} size="lg" />
-                        </button>
+                    <div className="mer-information-inner">
+
                     </div>
+                    <button className="click-to-hide hide-information" onClick={onToggleMerInformation}>
+                        <FontAwesomeIcon icon={faXmark} size="lg" />
+                    </button>
                 </div>
             </div>
             <div className="food-inputs-column-outer">
@@ -358,7 +358,7 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                         <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} />
                     </div>
                     <button className="click-to-hide hide-active" onClick={onHideActive}>
-                        <FontAwesomeIcon icon={faMinimize} size="xl" className="hide-active-icon" />
+                        <FontAwesomeIcon icon={faMinimize} size="lg" className="hide-active-icon" />
                     </button>
                 </div>
             </div>
