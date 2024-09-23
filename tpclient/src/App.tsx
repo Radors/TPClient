@@ -1,7 +1,7 @@
-﻿import { Fragment, useState, useEffect, useCallback, useMemo } from 'react';
+﻿import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfo, faPlay, faCircleMinus, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, } from '@fortawesome/free-solid-svg-icons';
+import { faInfo, faPlay, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, } from '@fortawesome/free-solid-svg-icons';
 import { useMediaQuery } from 'react-responsive'
 
 // Array<FoodProduct> will be RECEIVED from the server.
@@ -59,8 +59,8 @@ function FoodManager() {
     const [demo, setDemo] = useState(false);
     const [merInformation, setMerInformation] = useState(false);
 
-    const [foodProducts, setFoodProducts] = useState<{ products: Array<FoodProduct>; id: number }>({ products: [], id: -1 });
-    const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: Array<FoodProduct>; id: number }>({ products: [], id: -1 });
+    const [foodProducts, setFoodProducts] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
+    const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
 
 
     const activeInput = useMemo(() => {
@@ -71,6 +71,9 @@ function FoodManager() {
     const [debouncedQuery, setDebouncedQuery] = useState("");
 
 
+    const foodProductsRef = useRef(foodProducts);
+    foodProductsRef.current = foodProducts;
+
     const fetchData = useCallback(async (activeItem: { id: number, query: string, active: boolean }, searchType: SearchType) => {
         const urlBase = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/";
         const urlChoice = (searchType == SearchType.Basic) ? "basic" : "embeddings";
@@ -79,12 +82,18 @@ function FoodManager() {
             const response = await fetch(`${urlBase}${urlChoice}?query=${activeItem.query}&frontendid=${activeItem.id}`);
 
             if (response.ok) {
-                const items: Array<FoodProduct> = await response.json();
+                const items: FoodProduct[] = await response.json();
                 if (searchType == SearchType.Basic) {
                     setFoodProducts({ products: items, id: activeItem.id });
                 }
                 else if (searchType == SearchType.Embeddings) {
-                    setFoodProductsFromEmbeddings({ products: items, id: activeItem.id })
+                    const firstEightBasicsNames = foodProductsRef.current.products.slice(0, 8).map(product => product.name.toLowerCase());
+
+                    const newItems = items.filter(item => {
+                        return !firstEightBasicsNames.includes(item.name.toLowerCase());
+                    });
+
+                    setFoodProductsFromEmbeddings({ products: newItems, id: activeItem.id });
                 }
             }
         } catch (error) {

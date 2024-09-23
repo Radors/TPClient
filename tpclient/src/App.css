@@ -271,6 +271,15 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    outline: 0px;
+}
+
+.select-page-button:hover {
+    outline: 0px;
+}
+
+.select-page-button:focus-visible {
+    outline: 0px;
 }
 
 .sida {
