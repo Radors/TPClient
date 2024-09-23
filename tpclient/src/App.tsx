@@ -1,7 +1,7 @@
 ﻿import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfo, faPlay, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, } from '@fortawesome/free-solid-svg-icons';
+import { faInfo, faPlay, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, } from '@fortawesome/free-solid-svg-icons';
 import { useMediaQuery } from 'react-responsive'
 
 // Array<FoodProduct> will be RECEIVED from the server.
@@ -358,7 +358,7 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                         <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} />
                     </div>
                     <button className="click-to-hide hide-active" onClick={onHideActive}>
-                        <FontAwesomeIcon icon={faXmark} size="lg" />
+                        <FontAwesomeIcon icon={faMinimize} size="xl" className="hide-active-icon" />
                     </button>
                 </div>
             </div>

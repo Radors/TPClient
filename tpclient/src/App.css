@@ -150,8 +150,11 @@
     top: -42px;
 }
 
-/* ______________ */
+.hide-active-icon {
+    color: rgb(170, 170, 170);
+}
 
+/* ______________ */
 .food-inputs-column-outer {
     display: flex;
     flex-direction: column;
