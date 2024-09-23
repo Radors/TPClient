@@ -368,7 +368,6 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
     const itemsPerPage = 8;
 
     function onNextPage() {
-        console.log(items);
         if ((startIndex + itemsPerPage) < items.products.length) {
             setStartIndex(startIndex + itemsPerPage)
         }
@@ -377,7 +376,6 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
         if ((startIndex - itemsPerPage) >= 0) {
             setStartIndex(startIndex - itemsPerPage)
         }
-
     }
 
     const isLoading = (items.id !== activeId);
@@ -416,12 +414,24 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
                     style={{
                         display: items.products.length > 8 ? "flex" : "none"
                     }}>
-                    <button className="select-page-button" onClick={onPreviousPage}>
-                        <FontAwesomeIcon icon={faArrowLeft} className="select-page-icon" />
+                    <button className="select-page-button" onClick={onPreviousPage}
+                        style={{
+                            backgroundColor: startIndex > 0 ? "black" : "lightgrey"
+                    }}>
+                        <FontAwesomeIcon icon={faArrowLeft} className="select-page-icon"
+                            style={{
+                                color: startIndex > 0 ? "white" : "grey"
+                        }}/>
                     </button>
                     <div className="sida">Sida</div>
-                    <button className="select-page-button" onClick={onNextPage}>
-                        <FontAwesomeIcon icon={faArrowRight} className="select-page-icon" />
+                    <button className="select-page-button" onClick={onNextPage}
+                        style={{
+                            backgroundColor: ((startIndex + itemsPerPage) < items.products.length) ? "black" : "lightgrey"
+                        }}>
+                        <FontAwesomeIcon icon={faArrowRight} className="select-page-icon"
+                            style={{
+                                color: ((startIndex + itemsPerPage) < items.products.length) ? "white" : "grey"
+                        }}/>
                     </button>
                 </div>
             )}
