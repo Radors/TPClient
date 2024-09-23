@@ -425,22 +425,16 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
                     }}>
                     <button className="select-page-button" onClick={onPreviousPage}
                         style={{
-                            backgroundColor: startIndex > 0 ? "black" : "lightgrey"
+                            backgroundColor: startIndex > 0 ? "black" : "rgb(230, 230, 230)"
                     }}>
-                        <FontAwesomeIcon icon={faArrowLeft} className="select-page-icon"
-                            style={{
-                                color: startIndex > 0 ? "white" : "grey"
-                        }}/>
+                        <FontAwesomeIcon icon={faArrowLeft} className="select-page-icon" />
                     </button>
                     <div className="sida">Sida</div>
                     <button className="select-page-button" onClick={onNextPage}
                         style={{
-                            backgroundColor: ((startIndex + itemsPerPage) < items.products.length) ? "black" : "lightgrey"
+                            backgroundColor: ((startIndex + itemsPerPage) < items.products.length) ? "black" : "rgb(230, 230, 230)"
                         }}>
-                        <FontAwesomeIcon icon={faArrowRight} className="select-page-icon"
-                            style={{
-                                color: ((startIndex + itemsPerPage) < items.products.length) ? "white" : "grey"
-                        }}/>
+                        <FontAwesomeIcon icon={faArrowRight} className="select-page-icon" />
                     </button>
                 </div>
             )}
