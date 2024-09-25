@@ -68,10 +68,36 @@ function FoodManager() {
     }, [inputRows]);
 
     const fetchData = useCallback(async (activeItem: { id: number, query: string, active: boolean }, searchType: SearchType) => {
+        class TimeoutError extends Error {
+            constructor(message = 'Request timed out') {
+                super(message);
+                this.name = 'TimeoutError';
+            }
+        }
+        async function fetchWithTimeout(url: string, options = {}, timeout = 2000): Promise<Response> {
+            const controller = new AbortController();
+            const { signal } = controller;
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+            try {
+                const response = await fetch(url, { ...options, signal });
+
+                clearTimeout(timeoutId);
+                return response;
+
+            } catch (error) {
+                clearTimeout(timeoutId);
+
+                if (error instanceof DOMException && error.name === "AbortError") {
+                    throw new TimeoutError;
+                }
+                throw error;
+            }
+        }
         const urlBase = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/";
         const urlChoice = (searchType == SearchType.Basic) ? "basic" : "embeddings";
         try {
-            const response = await fetch(`${urlBase}${urlChoice}?query=${activeItem.query}&frontendid=${activeItem.id}`);
+            const response = await fetchWithTimeout(`${urlBase}${urlChoice}?query=${activeItem.query}&frontendid=${activeItem.id}`);
 
             if (response.ok) {
                 const items: FoodProduct[] = await response.json();
@@ -80,18 +106,34 @@ function FoodManager() {
                 }
                 else if (searchType == SearchType.Embeddings) {
                     const firstEightBasicsNames = foodProductsRef.current.products.slice(0, 8).map(product => product.name.toLowerCase());
-
                     const newItems = items.filter(item => {
                         return !firstEightBasicsNames.includes(item.name.toLowerCase());
                     });
-
                     setFoodProductsFromEmbeddings({ products: newItems, id: activeItem.id });
                 }
-            } else if (response.status === 503) {
-                console.log("test");
+            } else {
+                switch (response.status) {
+                    case 400:
+                        console.error("The request returned: 400 Bad Request");
+                        // Should never be possible for legitimate users of the UI
+                        break;
+                    case 503:
+                        console.error("The request returned: 503 Service Unavailable");
+                        // Retry and/or inform
+                        break;
+                    default:
+                        console.error(`The request resulted in an unexpected status code: ${response.status}`);
+                        // The server only responds with 200, 400, 503.
+                        break;
+                }
             }
-        } catch (error) {
-            console.error(error);
+        } catch (error: unknown) {
+            if (error instanceof TimeoutError) {
+                // Retry and/or inform
+                console.error("TimeoutError");
+            } else {
+                console.error("Unexpected error:", error);
+            }
         }
     }, []);
 
@@ -100,7 +142,7 @@ function FoodManager() {
             const query = activeInput.query;
             const handler = setTimeout(() => {
                 setDebouncedQuery(query);
-            }, 275);
+            }, 270);
 
             return () => {
                 clearTimeout(handler);
@@ -135,13 +177,12 @@ function FoodManager() {
         setInputRows(newInputRows);
     }
 
-    function onInputToMatvara(event: React.ChangeEvent<HTMLInputElement>, index: number) {
+    function onInputToMatvara(event: React.ChangeEvent<HTMLInputElement>, id: number) {
         const newInputRows = inputRows.map(item =>
-            item.id === inputRows[index].id
-                ? { ...item, active: true }
-                : { ...item, active: false }
+            item.id === id
+            ? { ...item, active: true, query: event.target.value }
+            : { ...item, active: false }
         );
-        newInputRows[index].query = event.target.value;
         setInputRows(newInputRows);
     }
 
@@ -155,9 +196,8 @@ function FoodManager() {
         setInputRows(newInputRows);
     }
 
-    function onRemoveInputRow(index: number) {
-        const newInputRows = inputRows.slice();
-        newInputRows.splice(index, 1);
+    function onRemoveInputRow(id: number) {
+        const newInputRows = inputRows.filter(e => e.id != id);
         setInputRows(newInputRows);
     }
 
@@ -184,7 +224,8 @@ function TopBar({ onToggleMerInformation }: { onToggleMerInformation: () => void
         <div className="top-bar">
             <div className="top-bar-inner">
                 <button className="demonstration">
-                    <FontAwesomeIcon size="sm" className="play-icon" icon={faPlay} />Demonstration
+                    <FontAwesomeIcon size="sm" className="play-icon" icon={faPlay} />
+                    Unnamed thing
                 </button>
                 <button className="mer-information" onClick={onToggleMerInformation}>
                     <FontAwesomeIcon size="sm" className="info-icon" icon={faInfo} />
@@ -288,15 +329,15 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
         onHideActive: () => void
     }) {
-    const content = inputRows.map((row: { id: number, query: string, active: boolean}, index: number) => (
+    const content = inputRows.map((row: { id: number, query: string, active: boolean}) => (
         <Fragment key={row.id}> 
             <div className="food-item-column"
                 style={{
                     border: row.active ? "1px solid lightgray" : "none",
                 }}>
                 <div className="food-item-upper-permanent">
-                    <input className="matvara" type="text" value={row.query} onChange={(event) => onInputToMatvara(event, index)} onClick={() => onSetActive(row.id)} placeholder="Matvara" />
-                    <button className="ta-bort" onClick={() => onRemoveInputRow(index)}
+                    <input className="matvara" type="text" value={row.query} onChange={(event) => onInputToMatvara(event, row.id)} onClick={() => onSetActive(row.id)} placeholder="Matvara" />
+                    <button className="ta-bort" onClick={() => onRemoveInputRow(row.id)}
                         style={{
                             visibility: inputRows.length == 1 ? "hidden" : "visible",
                         }}>
