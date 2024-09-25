@@ -54,31 +54,23 @@ function FoodManager() {
     const startingPoint = [{ id: 0, query: "", active: false },
                            { id: 1, query: "", active: false },
                            { id: 2, query: "", active: false }]
-
     const [inputRows, setInputRows] = useState(startingPoint);
-    const [demo, setDemo] = useState(false);
     const [merInformation, setMerInformation] = useState(false);
-
     const [foodProducts, setFoodProducts] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
-
+    const [debouncedQuery, setDebouncedQuery] = useState("");
+    const foodProductsRef = useRef(foodProducts);
+    foodProductsRef.current = foodProducts;
 
     const activeInput = useMemo(() => {
         const inputRow = inputRows.find(e => e.active);
         return { query: inputRow?.query, id: inputRow?.id };
     }, [inputRows]);
 
-    const [debouncedQuery, setDebouncedQuery] = useState("");
-
-
-    const foodProductsRef = useRef(foodProducts);
-    foodProductsRef.current = foodProducts;
-
     const fetchData = useCallback(async (activeItem: { id: number, query: string, active: boolean }, searchType: SearchType) => {
         const urlBase = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/";
         const urlChoice = (searchType == SearchType.Basic) ? "basic" : "embeddings";
         try {
-            console.log("fetching!")
             const response = await fetch(`${urlBase}${urlChoice}?query=${activeItem.query}&frontendid=${activeItem.id}`);
 
             if (response.ok) {
@@ -95,12 +87,13 @@ function FoodManager() {
 
                     setFoodProductsFromEmbeddings({ products: newItems, id: activeItem.id });
                 }
+            } else if (response.status === 503) {
+                console.log("test");
             }
         } catch (error) {
             console.error(error);
         }
     }, []);
-
 
     useEffect(() => {
         if (typeof activeInput.query === "string" && activeInput.query.trim() !== "") {
@@ -115,7 +108,6 @@ function FoodManager() {
         }
     }, [activeInput.query, activeInput.id]);
 
-
     useEffect(() => {
         if (debouncedQuery !== "") {
             const activeItem = inputRows.find(e => e.active);
@@ -127,37 +119,7 @@ function FoodManager() {
         }
     }, [debouncedQuery, fetchData, inputRows]);
 
-
-
-
-
-
-
-
-    useEffect(() => {
-        const finalValues = ["Torsk", "Potatis", "Hollandaisesås"];
-        function updateCurrentValues() {
-            const newInputRows = inputRows.slice();
-            newInputRows[0].query = finalValues[0].slice(0, inputRows[0].query.length + 1);
-            newInputRows[1].query = finalValues[1].slice(0, inputRows[1].query.length + 1);
-            newInputRows[2].query = finalValues[2].slice(0, inputRows[2].query.length + 1);
-            if (inputRows[2].query == finalValues[2]) {
-                setDemo(false);
-            }
-            setInputRows(newInputRows);
-        }
-
-        let id: ReturnType<typeof setTimeout>;
-        if (demo) {
-            id = setTimeout(updateCurrentValues, 50);
-        }
-
-        return () => {
-            clearTimeout(id);
-        };
-    }, [demo, inputRows]);
-
-    function onExpandMatvara(id: number) {
+    function onSetActive(id: number) {
         const newInputRows = inputRows.map(item =>
             item.id === id
             ? { ...item, active: true }
@@ -171,14 +133,6 @@ function FoodManager() {
             ({ ...item, active: false })
         );
         setInputRows(newInputRows);
-    }
-
-    function onStartDemonstration() {
-        if (!demo) {
-            const newInputRows = startingPoint;
-            setInputRows(newInputRows);
-            setDemo(true);
-        }
     }
 
     function onInputToMatvara(event: React.ChangeEvent<HTMLInputElement>, index: number) {
@@ -209,14 +163,14 @@ function FoodManager() {
 
     return (
         <div className="food-manager">
-            <TopBar onStartDemonstration={onStartDemonstration} onToggleMerInformation={onToggleMerInformation} />
+            <TopBar onToggleMerInformation={onToggleMerInformation} />
             <FoodMain inputRows={inputRows}
                 onAddInputRow={onAddInputRow}
                 onRemoveInputRow={onRemoveInputRow}
                 merInformation={merInformation}
                 onInputToMatvara={onInputToMatvara}
                 onToggleMerInformation={onToggleMerInformation}
-                onExpandMatvara={onExpandMatvara}
+                onSetActive={onSetActive}
                 foodProducts={foodProducts}
                 foodProductsFromEmbeddings={foodProductsFromEmbeddings}
                 onHideActive={onHideActive}
@@ -225,11 +179,11 @@ function FoodManager() {
     );
 }
 
-function TopBar({ onStartDemonstration, onToggleMerInformation }: { onStartDemonstration: () => void, onToggleMerInformation: () => void}) {
+function TopBar({ onToggleMerInformation }: { onToggleMerInformation: () => void}) {
     return (
         <div className="top-bar">
             <div className="top-bar-inner">
-                <button className="demonstration" onClick={onStartDemonstration}>
+                <button className="demonstration">
                     <FontAwesomeIcon size="sm" className="play-icon" icon={faPlay} />Demonstration
                 </button>
                 <button className="mer-information" onClick={onToggleMerInformation}>
@@ -242,7 +196,7 @@ function TopBar({ onStartDemonstration, onToggleMerInformation }: { onStartDemon
 }
 
 function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts, foodProductsFromEmbeddings, onHideActive }:
+    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onAddInputRow: () => void,
@@ -250,7 +204,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
         merInformation: boolean,
         onToggleMerInformation: () => void,
-        onExpandMatvara: (id: number) => void,
+        onSetActive: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
         onHideActive: () => void
@@ -261,7 +215,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
                 <FoodInputOuter
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
                     onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation}
-                    onExpandMatvara={onExpandMatvara} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
+                    onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
                     onHideActive={onHideActive}
                 />
             </div>
@@ -275,7 +229,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
 }
 
 function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onExpandMatvara, foodProducts, foodProductsFromEmbeddings, onHideActive }:
+    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onAddInputRow: () => void,
@@ -283,7 +237,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
         merInformation: boolean,
         onToggleMerInformation: () => void,
-        onExpandMatvara: (id: number) => void,
+        onSetActive: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
         onHideActive: () => void
@@ -306,7 +260,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
             <div className="food-inputs-column-outer">
 
                 <FoodInputs onInputToMatvara={onInputToMatvara} inputRows={inputRows} onRemoveInputRow={onRemoveInputRow}
-                    onExpandMatvara={onExpandMatvara} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
+                    onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
                     onHideActive={onHideActive} />
 
                 <div className="lagg-till-fler-outer">
@@ -324,12 +278,12 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
     );
 }
 
-function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMatvara, foodProducts, foodProductsFromEmbeddings, onHideActive }:
+function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive }:
     {
         onRemoveInputRow: (index: number) => void,
         inputRows: Array<{ id: number, query: string, active: boolean}>,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
-        onExpandMatvara: (id: number) => void,
+        onSetActive: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
         onHideActive: () => void
@@ -341,7 +295,7 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onExpandMat
                     border: row.active ? "1px solid lightgray" : "none",
                 }}>
                 <div className="food-item-upper-permanent">
-                    <input className="matvara" type="text" value={row.query} onChange={(event) => onInputToMatvara(event, index)} onClick={() => onExpandMatvara(row.id)} placeholder="Matvara" />
+                    <input className="matvara" type="text" value={row.query} onChange={(event) => onInputToMatvara(event, index)} onClick={() => onSetActive(row.id)} placeholder="Matvara" />
                     <button className="ta-bort" onClick={() => onRemoveInputRow(index)}
                         style={{
                             visibility: inputRows.length == 1 ? "hidden" : "visible",
