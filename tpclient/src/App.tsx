@@ -1,7 +1,7 @@
 ﻿import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfo, faPlay, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, } from '@fortawesome/free-solid-svg-icons';
+import { faInfo, faPlay, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, faCircleCheck, } from '@fortawesome/free-solid-svg-icons';
 import { useMediaQuery } from 'react-responsive'
 
 // Array<FoodProduct> will be RECEIVED from the server.
@@ -51,10 +51,10 @@ export default function App() {
 }
 
 function FoodManager() {
-    const startingPoint = [{ id: 0, query: "", active: false },
-                           { id: 1, query: "", active: false },
-                           { id: 2, query: "", active: false }]
-    const [inputRows, setInputRows] = useState(startingPoint);
+    const startingPoint = [{ id: 0, query: "", active: false, hasDecided: false, decision: null },
+                           { id: 1, query: "", active: false, hasDecided: false, decision: null },
+                           { id: 2, query: "", active: false, hasDecided: false, decision: null }]
+    const [inputRows, setInputRows] = useState<Array<{id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null}>>(startingPoint);
     const [merInformation, setMerInformation] = useState(false);
     const [foodProducts, setFoodProducts] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
@@ -67,11 +67,11 @@ function FoodManager() {
         return { query: inputRow?.query, id: inputRow?.id };
     }, [inputRows]);
 
-    const fetchData = useCallback(async (activeItem: { id: number, query: string, active: boolean }, searchType: SearchType) => {
+    const fetchData = useCallback(async (activeRow: { id: number, query: string, active: boolean }, searchType: SearchType) => {
         class TimeoutError extends Error {
-            constructor(message = 'Request timed out') {
+            constructor(message = "Request timed out") {
                 super(message);
-                this.name = 'TimeoutError';
+                this.name = "TimeoutError";
             }
         }
         async function fetchWithTimeout(url: string, options = {}, timeout = 2000): Promise<Response> {
@@ -95,21 +95,21 @@ function FoodManager() {
             }
         }
         const urlBase = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/";
-        const urlChoice = (searchType == SearchType.Basic) ? "basic" : "embeddings";
+        const urlChoice = (searchType === SearchType.Basic) ? "basic" : "embeddings";
         try {
-            const response = await fetchWithTimeout(`${urlBase}${urlChoice}?query=${activeItem.query}&frontendid=${activeItem.id}`);
+            const response = await fetchWithTimeout(`${urlBase}${urlChoice}?query=${activeRow.query}&frontendid=${activeRow.id}`);
 
             if (response.ok) {
                 const items: FoodProduct[] = await response.json();
-                if (searchType == SearchType.Basic) {
-                    setFoodProducts({ products: items, id: activeItem.id });
+                if (searchType === SearchType.Basic) {
+                    setFoodProducts({ products: items, id: activeRow.id });
                 }
-                else if (searchType == SearchType.Embeddings) {
+                else if (searchType === SearchType.Embeddings) {
                     const firstEightBasicsNames = foodProductsRef.current.products.slice(0, 8).map(product => product.name.toLowerCase());
                     const newItems = items.filter(item => {
                         return !firstEightBasicsNames.includes(item.name.toLowerCase());
                     });
-                    setFoodProductsFromEmbeddings({ products: newItems, id: activeItem.id });
+                    setFoodProductsFromEmbeddings({ products: newItems, id: activeRow.id });
                 }
             } else {
                 switch (response.status) {
@@ -129,10 +129,11 @@ function FoodManager() {
             }
         } catch (error: unknown) {
             if (error instanceof TimeoutError) {
-                // Retry and/or inform
                 console.error("TimeoutError");
+                // Retry and/or inform
             } else {
                 console.error("Unexpected error:", error);
+                // Retry and/or inform
             }
         }
     }, []);
@@ -152,14 +153,23 @@ function FoodManager() {
 
     useEffect(() => {
         if (debouncedQuery !== "") {
-            const activeItem = inputRows.find(e => e.active);
-            if (activeItem && activeItem.query === debouncedQuery) {
+            const activeRow = inputRows.find(e => e.active);
+            if (activeRow && activeRow.query === debouncedQuery) {
                 setDebouncedQuery("");
-                fetchData(activeItem, SearchType.Basic);
-                fetchData(activeItem, SearchType.Embeddings);
+                fetchData(activeRow, SearchType.Basic);
+                fetchData(activeRow, SearchType.Embeddings);
             }
         }
     }, [debouncedQuery, fetchData, inputRows]);
+
+    function onSelectFoodProduct(product: FoodProduct) {
+        const newInputRows = inputRows.map(item =>
+            item.id === product.frontendId
+                ? { ...item, active: false, hasDecided: true, decision: product }
+                : { ...item, active: false }
+        );
+        setInputRows(newInputRows);
+    }
 
     function onSetActive(id: number) {
         const newInputRows = inputRows.map(item =>
@@ -192,7 +202,7 @@ function FoodManager() {
 
     function onAddInputRow() {
         const newInputRows = inputRows.slice();
-        newInputRows.push({ id: (newInputRows[newInputRows.length - 1].id + 1), query: "", active: false});
+        newInputRows.push({ id: (newInputRows[newInputRows.length - 1].id + 1), query: "", active: false, hasDecided: false, decision: null });
         setInputRows(newInputRows);
     }
 
@@ -214,6 +224,7 @@ function FoodManager() {
                 foodProducts={foodProducts}
                 foodProductsFromEmbeddings={foodProductsFromEmbeddings}
                 onHideActive={onHideActive}
+                onSelectFoodProduct={onSelectFoodProduct}
             />
         </div>
     );
@@ -237,9 +248,9 @@ function TopBar({ onToggleMerInformation }: { onToggleMerInformation: () => void
 }
 
 function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive }:
+    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive, onSelectFoodProduct }:
     {
-        inputRows: Array<{ id: number, query: string, active: boolean}>,
+        inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onAddInputRow: () => void,
         onRemoveInputRow: (index: number) => void,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
@@ -248,7 +259,8 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
         onSetActive: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
-        onHideActive: () => void
+        onHideActive: () => void,
+        onSelectFoodProduct: (product: FoodProduct) => void
     }) {
     return (
         <div className="food-main">
@@ -257,7 +269,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
                     onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation}
                     onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
-                    onHideActive={onHideActive}
+                    onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct}
                 />
             </div>
             <div className="food-main-divider">
@@ -270,9 +282,9 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
 }
 
 function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive }:
+    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive, onSelectFoodProduct }:
     {
-        inputRows: Array<{ id: number, query: string, active: boolean}>,
+        inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onAddInputRow: () => void,
         onRemoveInputRow: (index: number) => void,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
@@ -281,7 +293,8 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         onSetActive: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
-        onHideActive: () => void
+        onHideActive: () => void,
+        onSelectFoodProduct: (product: FoodProduct) => void
     }) {
     return (
         <div className="food-input">
@@ -302,7 +315,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
 
                 <FoodInputs onInputToMatvara={onInputToMatvara} inputRows={inputRows} onRemoveInputRow={onRemoveInputRow}
                     onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
-                    onHideActive={onHideActive} />
+                    onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct} />
 
                 <div className="lagg-till-fler-outer">
                     <button className="lagg-till-fler" onClick={onAddInputRow}>
@@ -319,38 +332,51 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
     );
 }
 
-function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive }:
+function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive, onSelectFoodProduct }:
     {
         onRemoveInputRow: (index: number) => void,
-        inputRows: Array<{ id: number, query: string, active: boolean}>,
+        inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
         onSetActive: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
-        onHideActive: () => void
+        onHideActive: () => void,
+        onSelectFoodProduct: (product: FoodProduct) => void
     }) {
-    const content = inputRows.map((row: { id: number, query: string, active: boolean}) => (
+    const content = inputRows.map((row: { id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null}) => (
         <Fragment key={row.id}> 
             <div className="food-item-column"
                 style={{
                     border: row.active ? "1px solid lightgray" : "none",
                 }}>
-                <div className="food-item-upper-permanent">
-                    <input className="matvara" type="text" value={row.query} onChange={(event) => onInputToMatvara(event, row.id)} onClick={() => onSetActive(row.id)} placeholder="Matvara" />
-                    <button className="ta-bort" onClick={() => onRemoveInputRow(row.id)}
-                        style={{
-                            visibility: inputRows.length == 1 ? "hidden" : "visible",
-                        }}>
-                        <FontAwesomeIcon size="xl" icon={faCircleXmark} />
-                    </button>
+                <div className="food-item-upper-permanent-container">
+                    <div className="food-item-upper-permanent">
+                        <input className="matvara" type="text" value={row.query} onChange={(event) => onInputToMatvara(event, row.id)} onClick={() => onSetActive(row.id)} placeholder="Matvara" />
+                        <button className="ta-bort" onClick={() => onRemoveInputRow(row.id)}
+                            style={{
+                                visibility: inputRows.length === 1 ? "hidden" : "visible",
+                            }}>
+                            <FontAwesomeIcon size="xl" icon={faCircleXmark} />
+                        </button>
+                        <div className="decision-display" style={{
+                                display: row.hasDecided ? "flex" : "none"
+                            }}>
+                            <FontAwesomeIcon icon={faCircleCheck} className="decision-display-icon" size="lg" />
+                            <div className="decision-display-text">
+                                {row.hasDecided && (row.decision) && (
+                                    `${row.decision.name.slice(0, 42)}${row.decision.name.length > 42 ? "..." : ""}`
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div className="food-input-activated"
                     style={{
                         display: row.active ? 'flex' : 'none',
                     }}>
                     <div className="search-results-splitter">
-                        <SearchResults title="Sökresultat" items={foodProducts} activeId={row.id}  />
-                        <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} />
+                        <SearchResults title="Sökresultat" items={foodProducts} activeId={row.id} onSelectFoodProduct={onSelectFoodProduct} />
+                        <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} onSelectFoodProduct={onSelectFoodProduct} />
                     </div>
                     <button className="click-to-hide hide-active" onClick={onHideActive}>
                         <FontAwesomeIcon icon={faMinimize} size="lg" className="hide-active-icon" />
@@ -367,7 +393,13 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive
     );
 }
 
-function SearchResults({ title, items, activeId }: { title: string, items: { products: Array<FoodProduct>; id: number }, activeId: number }) {
+function SearchResults({ title, items, activeId, onSelectFoodProduct }:
+    {
+        title: string,
+        items: { products: Array<FoodProduct>; id: number },
+        activeId: number,
+        onSelectFoodProduct: (product: FoodProduct) => void
+    }) {
     const [startIndex, setStartIndex] = useState(0);
     const itemsPerPage = 8;
 
@@ -400,7 +432,7 @@ function SearchResults({ title, items, activeId }: { title: string, items: { pro
             return;
         }
         return (
-            <div key={index} className="search-item">
+            <div key={index} className="search-item" onClick={() => onSelectFoodProduct(item)}>
                 <p className="search-item-paragraph">
                     {item.name.slice(0, verySmallScreen ? 50 : (smallScreen ? 60 : 70))}
                 </p>
