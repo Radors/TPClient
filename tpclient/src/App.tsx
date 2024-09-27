@@ -556,7 +556,7 @@ function FoodGraph({ itemVisibility, showGuidelines, displayedInputRows }: { ite
             <div className="food-graph-guideline lowerguide" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}></div>
             <div className="food-graph-twohundred">200%</div>
             <div className="food-graph-hundredfifty" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}>150%</div>
-            <div className="food-graph-rdi">RDI</div>
+            <div className="food-graph-rdi">100%</div>
             <div className="food-graph-fifty" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}>50%</div>
             <div className="food-graph-nutrients-outer">
                 {allLabels}
@@ -645,7 +645,10 @@ function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, sh
                 <div className="fler-stodlinjer">
                     Fler stödlinjer
                 </div>
-                <div className="visa-container">
+                <div className="visa-container"
+                    style={{
+                        display: displayedInputRows.length > 0 ? "flex" : "none"
+                    }}>
                     Visa i<br />grafen
                 </div>
             </div>

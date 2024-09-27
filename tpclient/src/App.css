@@ -427,7 +427,7 @@
 
 .food-graph-canvas-bar {
     min-height: 2px;
-    width: 5px;
+    width: 7px;
     border-top: 1px solid white;
 }
 
@@ -476,7 +476,7 @@
 }
 
 .food-graph-rdi {
-    left: -26px;
+    left: -34px;
     top: 143px;
 }
 
@@ -507,6 +507,7 @@
 .mineral-text {
     margin-top: 5px;
     display: flex;
+    justify-content: start;
     writing-mode: vertical-lr;
 }
 
@@ -568,6 +569,10 @@
     overflow: hidden;
     mask-image: linear-gradient(to right, black 85%, transparent);
     width: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    max-width: 300px;
 }
 
 .food-legend-colormark-outer {
