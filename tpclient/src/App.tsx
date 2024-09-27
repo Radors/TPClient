@@ -29,6 +29,14 @@ interface FoodProduct {
     e: number;
 }
 
+interface InputRow {
+    id: number;
+    query: string;
+    active: boolean;
+    hasDecided: boolean;
+    decision: FoodProduct | null;
+}
+
 enum SearchType {
     Basic,
     Embeddings
@@ -54,7 +62,9 @@ function FoodManager() {
     const startingPoint = [{ id: 0, query: "", active: false, hasDecided: false, decision: null },
                            { id: 1, query: "", active: false, hasDecided: false, decision: null },
                            { id: 2, query: "", active: false, hasDecided: false, decision: null }]
-    const [inputRows, setInputRows] = useState<Array<{id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null}>>(startingPoint);
+    const [inputRows, setInputRows] = useState<InputRow[]>(startingPoint);
+    const [displayedInputRows, setDisplayedInputRows] = useState<InputRow[]>([]);
+    const [itemVisibility, setItemVisibility] = useState<boolean[]>([]);
     const [merInformation, setMerInformation] = useState(false);
     const [foodProducts, setFoodProducts] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
@@ -162,6 +172,22 @@ function FoodManager() {
         }
     }, [debouncedQuery, fetchData, inputRows]);
 
+
+    function onToggleVisibility(index: number) {
+        const newItemVisibility = itemVisibility.slice();
+        newItemVisibility[index] = !newItemVisibility[index];
+        setItemVisibility(newItemVisibility);
+    }
+
+    function onDisplayNutrition() {
+        const inputRowsDecided = inputRows.filter(e => e.hasDecided && e.decision);
+        if (inputRowsDecided.length < 1) {
+            return; // Inform the user
+        }
+        setDisplayedInputRows(inputRowsDecided);
+        setItemVisibility(Array(inputRowsDecided.length).fill(true));
+    }
+
     function onSelectFoodProduct(product: FoodProduct) {
         const newInputRows = inputRows.map(item =>
             item.id === product.frontendId
@@ -225,6 +251,10 @@ function FoodManager() {
                 foodProductsFromEmbeddings={foodProductsFromEmbeddings}
                 onHideActive={onHideActive}
                 onSelectFoodProduct={onSelectFoodProduct}
+                onDisplayNutrition={onDisplayNutrition}
+                displayedInputRows={displayedInputRows}
+                itemVisibility={itemVisibility}
+                onToggleVisibility={onToggleVisibility}
             />
         </div>
     );
@@ -248,7 +278,8 @@ function TopBar({ onToggleMerInformation }: { onToggleMerInformation: () => void
 }
 
 function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive, onSelectFoodProduct }:
+    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings,
+    onHideActive, onSelectFoodProduct, onDisplayNutrition, displayedInputRows, itemVisibility, onToggleVisibility }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onAddInputRow: () => void,
@@ -260,7 +291,11 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
         onHideActive: () => void,
-        onSelectFoodProduct: (product: FoodProduct) => void
+        onSelectFoodProduct: (product: FoodProduct) => void,
+        onDisplayNutrition: () => void,
+        displayedInputRows: InputRow[],
+        itemVisibility: boolean[],
+        onToggleVisibility: (index: number) => void
     }) {
     return (
         <div className="food-main">
@@ -269,20 +304,21 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
                     onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation}
                     onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
-                    onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct}
+                    onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct} onDisplayNutrition={onDisplayNutrition}
                 />
             </div>
             <div className="food-main-divider">
             </div>
             <div className="food-main-right">
-                <FoodOutput />
+                <FoodOutput displayedInputRows={displayedInputRows} itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility} />
             </div>
         </div>
     );
 }
 
 function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive, onSelectFoodProduct }:
+    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, 
+    onHideActive, onSelectFoodProduct, onDisplayNutrition }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onAddInputRow: () => void,
@@ -294,7 +330,8 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
         onHideActive: () => void,
-        onSelectFoodProduct: (product: FoodProduct) => void
+        onSelectFoodProduct: (product: FoodProduct) => void,
+        onDisplayNutrition: () => void
     }) {
     return (
         <div className="food-input">
@@ -323,7 +360,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                         Lägg till fler
                     </button>
                 </div>
-                <button className="generera-resultat" >
+                <button className="generera-resultat" onClick={onDisplayNutrition} >
                     <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
                     Visa näringsvärden
                 </button>
@@ -469,41 +506,37 @@ function SearchResults({ title, items, activeId, onSelectFoodProduct }:
     );
 }
 
-function FoodOutput() {
-    const [itemVisibility, setItemVisibility] = useState(Array(3).fill(true));
+function FoodOutput({ displayedInputRows, itemVisibility, onToggleVisibility }:
+    {
+        displayedInputRows: InputRow[],
+        itemVisibility: boolean[],
+        onToggleVisibility: (index: number) => void
+    }) {
     const [showGuidelines, setShowGuidelines] = useState(false);
 
-    function onToggleVisibility(id: number) {
-        const newItemVisibility = itemVisibility.slice();
-        newItemVisibility[id] = !newItemVisibility[id];
-        setItemVisibility(newItemVisibility);
-    }
-
+    
     function onToggleGuidelines() {
         setShowGuidelines(!showGuidelines);
     }
-
-
-    const EmptyArrayToAvoidErrorForNow: Array<FoodProduct> = []; /* |||||||||||||||||||||| */
     return (
         <>
             <div className="food-output">
-                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} foodProducts={EmptyArrayToAvoidErrorForNow} />
+                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} displayedInputRows={displayedInputRows} />
                 <FoodLegend itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility}
-                    onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} foodProducts={EmptyArrayToAvoidErrorForNow} />
+                    onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} displayedInputRows={displayedInputRows} />
             </div>
         </>
     );
 }
 
-function FoodGraph({ itemVisibility, showGuidelines, foodProducts }: { itemVisibility: Array<boolean>, showGuidelines: boolean, foodProducts: Array<FoodProduct> }) {
+function FoodGraph({ itemVisibility, showGuidelines, displayedInputRows }: { itemVisibility: Array<boolean>, showGuidelines: boolean, displayedInputRows: InputRow[] }) {
     const nutrientPropertyKeys: Array<keyof FoodProduct> = ["jod", "jarn", "kalcium", "kalium", "magnesium", "selen", "zink",
         "a", "b1", "b2", "b3", "b6", "b9", "b12", "c", "d", "e"];
     const nutrientLabels: Array<string> = ["Jod", "Järn", "Kalcium", "Kalium", "Magnesium", "Selen", "Zink",
         "A", "B1", "B2", "B3", "B6", "B9", "B12", "C", "D", "E"];
 
     const allBars = nutrientPropertyKeys.map((property: keyof FoodProduct, index: number) => (
-        <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} foodProducts={foodProducts} />
+        <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} displayedInputRows={displayedInputRows} />
     ));
 
     const allLabels = nutrientLabels.map((label: string, index: number) => (
@@ -545,17 +578,17 @@ function FoodGraphNutrientsContainer({ isMineral, nutrient }: { isMineral: boole
 const barColors: Array<string> = ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B",
     "#E377C2", "#BCBD22", "#17BECF", "#AEC7E8", "#FFBB78", "#98DF8A", "#FF9896", "#C5B0D5"];
 
-function FoodGraphCanvasBarContainer({ nutrientProperty, foodProducts, itemVisibility }:
+function FoodGraphCanvasBarContainer({ nutrientProperty, displayedInputRows, itemVisibility }:
     {
         nutrientProperty: keyof FoodProduct,
-        foodProducts: Array<FoodProduct>,
+        displayedInputRows: InputRow[],
         itemVisibility: Array<boolean>
     }) {
-    const content = foodProducts.map((item: FoodProduct, index: number) => (
+    const content = displayedInputRows.map((item: InputRow, index: number) => (
         <div key={index} className="food-graph-canvas-bar"
             style={{
                 backgroundColor: `${barColors[index]}`,
-                height: `${(item[nutrientProperty]) as number * 150}px`, // 150 instead of 300 since full height means 200%
+                height: `${(item.decision![nutrientProperty]) as number * 150}px`, // 150 instead of 300 since full height means 200%
                 display: itemVisibility[index] ? "flex" : "none",
             }}>
         </div>
@@ -569,15 +602,15 @@ function FoodGraphCanvasBarContainer({ nutrientProperty, foodProducts, itemVisib
 }
 
 
-function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines, foodProducts }:
+function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines, displayedInputRows }:
     {
         itemVisibility: Array<boolean>,
         onToggleVisibility: (id: number) => void,
         onToggleGuidelines: () => void,
         showGuidelines: boolean,
-        foodProducts: Array<FoodProduct>
+        displayedInputRows: InputRow[]
     }) {
-    const allLegends = foodProducts.map((item: FoodProduct, index: number) => (
+    const allLegends = displayedInputRows.map((item: InputRow, index: number) => (
         <div key={index} className="food-legend-and-switch">
             <div className="food-legend-container">
                 <div className="food-legend-colormark-outer">
@@ -588,7 +621,7 @@ function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, sh
                     ></div>
                 </div>
                 <div className="food-legend-label">
-                     {item.name}
+                     {item.decision!.name}
                 </div>
             </div>
             <div className="switch-container">

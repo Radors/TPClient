@@ -426,8 +426,9 @@
 }
 
 .food-graph-canvas-bar {
+    min-height: 2px;
     width: 5px;
-    height: 5%;
+    border-top: 1px solid white;
 }
 
 .food-graph-canvas-limit-bar {
