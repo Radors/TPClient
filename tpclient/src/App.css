@@ -552,24 +552,36 @@
     flex-direction: row;
     background-color: rgb(240, 240, 240);
     border-radius: 10px;
+    background: none;
+    box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }
 
 .select-scale-button {
-    width: 33%;
+    width: 33.33%;
     height: 30px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 0px;
+    background: none;
+    outline: none;
+    font-size: 12px;
+    border-radius: 8px;
 }
+
+.select-scale-button:hover,
+.select-scale-button:focus-visible {
+    outline: none;
+}
+
 
 .select-scale-onehundred {
     border-radius: 10px 0px 0px 10px;
 }
 
 .select-scale-twohundred {
-    margin-left: 3px;
-    margin-right: 3px;
+    background-color: black;
+    color: white;
 }
 
 .select-scale-fourhundred {
