@@ -512,7 +512,7 @@ function FoodOutput({ displayedInputRows, itemVisibility, onToggleVisibility }:
         onToggleVisibility: (index: number) => void
     }) {
 
-    const [visualMax, setVisualMax] = useState<VisualMax>(200);
+    const [visualMax, setVisualMax] = useState<VisualMax>(100);
 
     function onSelectVisualMax(choice: VisualMax) {
         if (choice !== visualMax) {
@@ -537,7 +537,7 @@ function FoodGraph({ itemVisibility, displayedInputRows, visualMax }: { itemVisi
         "A", "B1", "B2", "B3", "B6", "B9", "B12", "C", "D", "E"];
 
     const allBars = nutrientPropertyKeys.map((property: keyof FoodProduct, index: number) => (
-        <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} displayedInputRows={displayedInputRows} />
+        <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} displayedInputRows={displayedInputRows} visualMax={visualMax} />
     ));
 
     const allLabels = nutrientLabels.map((label: string, index: number) => (
@@ -579,17 +579,18 @@ function FoodGraphNutrientsContainer({ isMineral, nutrient }: { isMineral: boole
 const barColors: Array<string> = ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B",
     "#E377C2", "#BCBD22", "#17BECF", "#AEC7E8", "#FFBB78", "#98DF8A", "#FF9896", "#C5B0D5"];
 
-function FoodGraphCanvasBarContainer({ nutrientProperty, displayedInputRows, itemVisibility }:
+function FoodGraphCanvasBarContainer({ nutrientProperty, displayedInputRows, itemVisibility, visualMax }:
     {
         nutrientProperty: keyof FoodProduct,
         displayedInputRows: InputRow[],
-        itemVisibility: Array<boolean>
+        itemVisibility: Array<boolean>,
+        visualMax: VisualMax
     }) {
     const content = displayedInputRows.map((item: InputRow, index: number) => (
         <div key={index} className="food-graph-canvas-bar"
             style={{
                 backgroundColor: `${barColors[index]}`,
-                height: `${(item.decision![nutrientProperty]) as number * 150}px`, // 150 instead of 300 since full height means 200%
+                height: `${(item.decision![nutrientProperty]) as number * 300 * 100 / visualMax}px`,
                 display: itemVisibility[index] ? "flex" : "none",
             }}>
         </div>
@@ -640,7 +641,7 @@ function FoodLegend({ itemVisibility, onToggleVisibility, displayedInputRows, on
                 <div className="select-scale-container">
                     <div className="select-scale-column">
                         <div className="select-scale-label">
-                            Maximalt värde i visualisering
+                            Maximalt värde för visualisering
                         </div>
                         <div className="select-scale-buttons">
                             <button className="select-scale-button" onClick={() => onSelectVisualMax(100)}

@@ -175,8 +175,8 @@
     flex-direction: column;
     justify-items: center;
     align-items: center;
-    margin-bottom: 10px;
     padding-top: 10px;
+    margin-bottom: 5px;
     box-sizing: border-box;
     border-radius: 12px;
 }
@@ -423,17 +423,21 @@
     flex-direction: column-reverse;
     justify-content: end;
     align-items: center;
+    height: 100%;
+    overflow: hidden;
+    max-height: 300px;
 }
 
 .food-graph-canvas-bar {
-    min-height: 2px;
     width: 7px;
+    min-height: 2px;
     border-top: 1px solid white;
+    flex-shrink: 0;
 }
 
 .food-graph-canvas-limit-bar {
-    background-color: dimgray;
     height: 3px;
+    background-color: dimgray;
     border-radius: 2px;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
 }
