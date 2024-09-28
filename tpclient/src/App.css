@@ -432,7 +432,7 @@
 }
 
 .food-graph-canvas-limit-bar {
-    background-color: #252525;
+    background-color: dimgray;
     height: 3px;
     border-radius: 2px;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
@@ -459,30 +459,24 @@
     top: 228px;
 }
 
-.food-graph-fifty, .food-graph-rdi, .food-graph-hundredfifty, .food-graph-twohundred {
+.food-graph-onehundred, .food-graph-twohundred {
+    width: 35px;
+    display: flex;
+    justify-content: end;
     position: absolute;
     font-size: small;
     font-weight: 500;
 }
 
 .food-graph-twohundred {
-    left: -36px;
+    left: -38px;
     top: -9px;
 }
 
-.food-graph-hundredfifty {
-    left: -34px;
-    top: 67px;
-}
-
-.food-graph-rdi {
-    left: -34px;
+.food-graph-onehundred {
+    left: -38px;
     top: 143px;
-}
-
-.food-graph-fifty {
-    left: -29px;
-    top: 219px;
+    color: gray;
 }
 
 .food-graph-nutrients-outer {
@@ -572,20 +566,6 @@
 .select-scale-button:hover,
 .select-scale-button:focus-visible {
     outline: none;
-}
-
-
-.select-scale-onehundred {
-    border-radius: 10px 0px 0px 10px;
-}
-
-.select-scale-twohundred {
-    background-color: black;
-    color: white;
-}
-
-.select-scale-fourhundred {
-    border-radius: 0px 10px 10px 0px;
 }
 
 .visa-container {

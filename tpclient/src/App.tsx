@@ -28,7 +28,6 @@ interface FoodProduct {
     d: number;
     e: number;
 }
-
 interface InputRow {
     id: number;
     query: string;
@@ -36,11 +35,11 @@ interface InputRow {
     hasDecided: boolean;
     decision: FoodProduct | null;
 }
-
 enum SearchType {
     Basic,
     Embeddings
 }
+type VisualMax = 100 | 200 | 400;
 
 export default function App() {
     return (
@@ -512,24 +511,26 @@ function FoodOutput({ displayedInputRows, itemVisibility, onToggleVisibility }:
         itemVisibility: boolean[],
         onToggleVisibility: (index: number) => void
     }) {
-    const [showGuidelines, setShowGuidelines] = useState(false);
 
-    
-    function onToggleGuidelines() {
-        setShowGuidelines(!showGuidelines);
+    const [visualMax, setVisualMax] = useState<VisualMax>(200);
+
+    function onSelectVisualMax(choice: VisualMax) {
+        if (choice !== visualMax) {
+            setVisualMax(choice);
+        }
     }
     return (
         <>
             <div className="food-output">
-                <FoodGraph itemVisibility={itemVisibility} showGuidelines={showGuidelines} displayedInputRows={displayedInputRows} />
+                <FoodGraph itemVisibility={itemVisibility} displayedInputRows={displayedInputRows} visualMax={visualMax} />
                 <FoodLegend itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility}
-                    onToggleGuidelines={onToggleGuidelines} showGuidelines={showGuidelines} displayedInputRows={displayedInputRows} />
+                    displayedInputRows={displayedInputRows} onSelectVisualMax={onSelectVisualMax} visualMax={visualMax} />
             </div>
         </>
     );
 }
 
-function FoodGraph({ itemVisibility, showGuidelines, displayedInputRows }: { itemVisibility: Array<boolean>, showGuidelines: boolean, displayedInputRows: InputRow[] }) {
+function FoodGraph({ itemVisibility, displayedInputRows, visualMax }: { itemVisibility: Array<boolean>, displayedInputRows: InputRow[], visualMax: VisualMax }) {
     const nutrientPropertyKeys: Array<keyof FoodProduct> = ["jod", "jarn", "kalcium", "kalium", "magnesium", "selen", "zink",
         "a", "b1", "b2", "b3", "b6", "b9", "b12", "c", "d", "e"];
     const nutrientLabels: Array<string> = ["Jod", "Järn", "Kalcium", "Kalium", "Magnesium", "Selen", "Zink",
@@ -551,13 +552,13 @@ function FoodGraph({ itemVisibility, showGuidelines, displayedInputRows }: { ite
                 {allBars}
             </div>
             <div className="food-graph-canvas-limit-bar"></div>
-            <div className="food-graph-guideline upperguide" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}></div>
             <div className="food-graph-guideline midguide"></div>
-            <div className="food-graph-guideline lowerguide" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}></div>
-            <div className="food-graph-twohundred">200%</div>
-            <div className="food-graph-hundredfifty" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}>150%</div>
-            <div className="food-graph-rdi">100%</div>
-            <div className="food-graph-fifty" style={{ visibility: `${showGuidelines ? "visible" : "hidden"}` }}>50%</div>
+            <div className="food-graph-twohundred">
+                {visualMax === 100 ? "100%" : (visualMax === 200 ? "200%" : "400%")}
+            </div>
+            <div className="food-graph-onehundred">
+                {visualMax === 100 ? "50%" : (visualMax === 200 ? "100%" : "200%")}
+            </div>
             <div className="food-graph-nutrients-outer">
                 {allLabels}
             </div>
@@ -602,13 +603,13 @@ function FoodGraphCanvasBarContainer({ nutrientProperty, displayedInputRows, ite
 }
 
 
-function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, showGuidelines, displayedInputRows }:
+function FoodLegend({ itemVisibility, onToggleVisibility, displayedInputRows, onSelectVisualMax, visualMax }:
     {
         itemVisibility: Array<boolean>,
         onToggleVisibility: (id: number) => void,
-        onToggleGuidelines: () => void,
-        showGuidelines: boolean,
-        displayedInputRows: InputRow[]
+        displayedInputRows: InputRow[],
+        onSelectVisualMax: (choice: VisualMax) => void,
+        visualMax: VisualMax
     }) {
     const allLegends = displayedInputRows.map((item: InputRow, index: number) => (
         <div key={index} className="food-legend-and-switch">
@@ -642,13 +643,25 @@ function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, sh
                             Maximalt värde i visualisering
                         </div>
                         <div className="select-scale-buttons">
-                            <button className="select-scale-button select-scale-onehundred">
+                            <button className="select-scale-button" onClick={() => onSelectVisualMax(100)}
+                                style={{
+                                    backgroundColor: visualMax === 100 ? "black" : "white",
+                                    color: visualMax === 100 ? "white" : "black"
+                                }}>
                                 100%
                             </button>
-                            <button className="select-scale-button select-scale-twohundred">
+                            <button className="select-scale-button" onClick={() => onSelectVisualMax(200)}
+                                style={{
+                                    backgroundColor: visualMax === 200 ? "black" : "white",
+                                    color: visualMax === 200 ? "white" : "black"
+                                }}>
                                 200%
                             </button>
-                            <button className="select-scale-button select-scale-fourhundred">
+                            <button className="select-scale-button" onClick={() => onSelectVisualMax(400)}
+                                style={{
+                                    backgroundColor: visualMax === 400 ? "black" : "white",
+                                    color: visualMax === 400 ? "white" : "black"
+                                }}>
                                 400%
                             </button>
                         </div>
