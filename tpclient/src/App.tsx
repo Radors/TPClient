@@ -636,20 +636,29 @@ function FoodLegend({ itemVisibility, onToggleVisibility, onToggleGuidelines, sh
     return (
         <div className="food-legend-outer">
             <div className="food-legend-toprow">
-                <div className="switch-container">
-                    <label className="switch">
-                        <input type="checkbox" checked={showGuidelines} onChange={onToggleGuidelines} />
-                        <span className="slider round" />
-                    </label>
-                </div>
-                <div className="fler-stodlinjer">
-                    Fler stödlinjer
+                <div className="select-scale-container">
+                    <div className="select-scale-column">
+                        <div className="select-scale-label">
+                            Maximalt värde i visualisering
+                        </div>
+                        <div className="select-scale-buttons">
+                            <button className="select-scale-button select-scale-onehundred">
+                                100%
+                            </button>
+                            <button className="select-scale-button select-scale-twohundred">
+                                200%
+                            </button>
+                            <button className="select-scale-button select-scale-fourhundred">
+                                400%
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div className="visa-container"
                     style={{
                         display: displayedInputRows.length > 0 ? "flex" : "none"
                     }}>
-                    Visa i<br />grafen
+                    Visa
                 </div>
             </div>
             {allLegends}

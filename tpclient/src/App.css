@@ -523,7 +523,67 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 15px;
+}
+
+.select-scale-container {
+    width: 180px;
+    height: 50px;
+    margin-bottom: 15px;
+}
+
+.select-scale-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.select-scale-label {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 3px;
+    font-size: 12px;
+}
+
+.select-scale-buttons {
+    display: flex;
+    flex-direction: row;
+    background-color: rgb(240, 240, 240);
+    border-radius: 10px;
+}
+
+.select-scale-button {
+    width: 33%;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0px;
+}
+
+.select-scale-onehundred {
+    border-radius: 10px 0px 0px 10px;
+}
+
+.select-scale-twohundred {
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.select-scale-fourhundred {
+    border-radius: 0px 10px 10px 0px;
+}
+
+.visa-container {
+    width: 45px;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    font-size: 13px;
+    line-height: 13px;
 }
 
 .switch-container {
@@ -532,21 +592,6 @@
     justify-content: center;
     align-items: center;
 }
-
-.fler-stodlinjer {
-    margin-left: 5px;
-    width: 44%;
-    display: flex;
-    justify-content: start;
-}
-
-.visa-container {
-    width: 44%;
-    display: flex;
-    justify-content: end;
-    line-height: 15px;
-}
-
 
 .food-legend-and-switch {
     display: flex;
