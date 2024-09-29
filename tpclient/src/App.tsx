@@ -82,7 +82,7 @@ function FoodManager() {
                 this.name = "TimeoutError";
             }
         }
-        async function fetchWithTimeout(url: string, options = {}, timeout = 2000): Promise<Response> {
+        async function fetchWithTimeout(url: string, options = {}, timeout = 1500): Promise<Response> {
             const controller = new AbortController();
             const { signal } = controller;
             const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -105,8 +105,10 @@ function FoodManager() {
         function handleRequestFailure(searchType: SearchType) {
             if (searchType === SearchType.Basic) {
                 setFailedRequest((previous) => ({ ...previous, basic: true }));
+                setFoodProducts({ products: [], id: -1 });
             } else {
                 setFailedRequest((previous) => ({ ...previous, embeddings: true }));
+                setFoodProductsFromEmbeddings({ products: [], id: -1 });
             }
         }
         function clearRequestFailure(searchType: SearchType) {
