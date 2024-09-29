@@ -1,15 +1,13 @@
-﻿import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import './App.css';
+﻿import './App.css';
+import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfo, faPlay, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, faCircleCheck, faRotateLeft, faArrowRotateLeft, } from '@fortawesome/free-solid-svg-icons';
+import { faInfo, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, faCircleCheck, faArrowRotateLeft, } from '@fortawesome/free-solid-svg-icons';
 import { useMediaQuery } from 'react-responsive'
 
-// Array<FoodProduct> will be RECEIVED from the server.
 interface FoodProduct {
     query: string;
     frontendId: number;
     name: string;
-    // Nutrient percentages as decimal points
     jod: number;
     jarn: number;
     kalcium: number;
@@ -68,6 +66,7 @@ function FoodManager() {
     const [foodProducts, setFoodProducts] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [debouncedQuery, setDebouncedQuery] = useState("");
+    const [failedRequest, setFailedRequest] = useState({basic: false, embeddings: false});
     const foodProductsRef = useRef(foodProducts);
     foodProductsRef.current = foodProducts;
 
@@ -103,6 +102,21 @@ function FoodManager() {
                 throw error;
             }
         }
+        function handleRequestFailure(searchType: SearchType) {
+            if (searchType === SearchType.Basic) {
+                setFailedRequest((previous) => ({ ...previous, basic: true }));
+            } else {
+                setFailedRequest((previous) => ({ ...previous, embeddings: true }));
+            }
+        }
+        function clearRequestFailure(searchType: SearchType) {
+            if (searchType === SearchType.Basic) {
+                setFailedRequest((previous) => ({ ...previous, basic: false }));
+            } else {
+                setFailedRequest((previous) => ({ ...previous, embeddings: false }));
+            }
+        }
+        clearRequestFailure(searchType);
         const urlBase = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/";
         const urlChoice = (searchType === SearchType.Basic) ? "basic" : "embeddings";
         try {
@@ -124,25 +138,25 @@ function FoodManager() {
                 switch (response.status) {
                     case 400:
                         console.error("The request returned: 400 Bad Request");
-                        // Should never be possible for legitimate users of the UI
+                        handleRequestFailure(searchType);
                         break;
                     case 503:
                         console.error("The request returned: 503 Service Unavailable");
-                        // Retry and/or inform
+                        handleRequestFailure(searchType);
                         break;
                     default:
                         console.error(`The request resulted in an unexpected status code: ${response.status}`);
-                        // The server only responds with 200, 400, 503.
+                        handleRequestFailure(searchType);
                         break;
                 }
             }
         } catch (error: unknown) {
             if (error instanceof TimeoutError) {
                 console.error("TimeoutError");
-                // Retry and/or inform
+                handleRequestFailure(searchType);
             } else {
                 console.error("Unexpected error:", error);
-                // Retry and/or inform
+                handleRequestFailure(searchType);
             }
         }
     }, []);
@@ -277,7 +291,7 @@ function TopBar({ onToggleMerInformation, onClearTopState }: { onToggleMerInform
                     Mer information
                 </button>
                 <button className="restore-button" onClick={onClearTopState}>
-                    <FontAwesomeIcon icon={faArrowRotateLeft} className="restore-icon"/>
+                    <FontAwesomeIcon icon={faArrowRotateLeft} size="sm" className="restore-icon"/>
                     Återställ alla fält
                 </button>
             </div>
@@ -356,8 +370,8 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                         (Livsmedelsverkets livsmedelsdatabas version 2024-05-29)<br />
                         <br />
                         Rekommendationer gällande dagligt intag är något som förändras över tid.
-                        MatPerspektiv utgår från de senaste rekommendationerna med bredast
-                        vetenskapliga stöd, vilket för närvarande är de nordiska
+                        MatPerspektiv utgår från de senaste rekommendationerna med brett
+                        vetenskapligt stöd, vilket för närvarande är de nordiska
                         näringsrekommendationerna, NNR 2023.
                     </div>
                     <button className="click-to-hide hide-information" onClick={onToggleMerInformation}>
@@ -637,8 +651,8 @@ function FoodLegend({ itemVisibility, onToggleVisibility, displayedInputRows, on
                     <div className="food-legend-colormark"
                         style={{
                             backgroundColor: `${barColors[index]}`
-                        }}
-                    ></div>
+                        }}>
+                    </div>
                 </div>
                 <div className="food-legend-label">
                      {item.decision!.name}
