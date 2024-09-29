@@ -294,6 +294,12 @@
     border-radius: 8px;
 }
 
+.failure-message {
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
 .select-page {
     width: 100%;
     height: 12%;

@@ -185,6 +185,10 @@ function FoodManager() {
         }
     }, [debouncedQuery, fetchData, inputRows]);
 
+    function resetBothFailureStates() {
+        setFailedRequest({ basic: false, embeddings: false });
+    }
+
     function onClearTopState() {
         setInputRows(startingPoint);
         setDisplayedInputRows([]);
@@ -225,6 +229,7 @@ function FoodManager() {
             ? { ...item, active: true }
             : { ...item, active: false }
         );
+        resetBothFailureStates();
         setInputRows(newInputRows);
     }
 
@@ -232,6 +237,7 @@ function FoodManager() {
         const newInputRows = inputRows.map(item =>
             ({ ...item, active: false })
         );
+        resetBothFailureStates();
         setInputRows(newInputRows);
     }
 
@@ -277,6 +283,7 @@ function FoodManager() {
                 displayedInputRows={displayedInputRows}
                 itemVisibility={itemVisibility}
                 onToggleVisibility={onToggleVisibility}
+                failedRequest={failedRequest}
             />
         </div>
     );
@@ -301,7 +308,7 @@ function TopBar({ onToggleMerInformation, onClearTopState }: { onToggleMerInform
 
 function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
     merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings,
-    onHideActive, onSelectFoodProduct, onDisplayNutrition, displayedInputRows, itemVisibility, onToggleVisibility }:
+    onHideActive, onSelectFoodProduct, onDisplayNutrition, displayedInputRows, itemVisibility, onToggleVisibility, failedRequest }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onAddInputRow: () => void,
@@ -317,16 +324,17 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
         onDisplayNutrition: () => void,
         displayedInputRows: InputRow[],
         itemVisibility: boolean[],
-        onToggleVisibility: (index: number) => void
+        onToggleVisibility: (index: number) => void,
+        failedRequest: { basic: boolean, embeddings: boolean }
     }) {
     return (
         <div className="food-main">
             <div className="food-main-left">
                 <FoodInputOuter
                     onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
-                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation}
-                    onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
-                    onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct} onDisplayNutrition={onDisplayNutrition}
+                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} onSetActive={onSetActive}
+                    foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings} onHideActive={onHideActive}
+                    onSelectFoodProduct={onSelectFoodProduct} onDisplayNutrition={onDisplayNutrition} failedRequest={failedRequest}
                 />
             </div>
             <div className="food-main-divider">
@@ -340,7 +348,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
 
 function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
     merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, 
-    onHideActive, onSelectFoodProduct, onDisplayNutrition }:
+    onHideActive, onSelectFoodProduct, onDisplayNutrition, failedRequest }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onAddInputRow: () => void,
@@ -353,7 +361,8 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
         onHideActive: () => void,
         onSelectFoodProduct: (product: FoodProduct) => void,
-        onDisplayNutrition: () => void
+        onDisplayNutrition: () => void,
+        failedRequest: { basic: boolean, embeddings: boolean }
     }) {
     return (
         <div className="food-input">
@@ -363,13 +372,13 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
             }}>
                 <div className="mer-information-container">
                     <div className="mer-information-inner">
-                        Alla näringsvärden indikerar innehåll per 100 gram livsmedel.<br />
-                        Värderna visualiseras som procent av rekommenderat intag.<br />
+                        Näringsvärden indikerar innehåll per 100 gram livsmedel.<br />
+                        Dessa värden visualiseras som procent av rekommenderat intag.<br />
                         <br />
                         Datamängden med näringstäthet är hämtad från Livsmedelsverket.<br />
                         (Livsmedelsverkets livsmedelsdatabas version 2024-05-29)<br />
                         <br />
-                        Rekommendationer gällande dagligt intag är något som förändras över tid.
+                        Rekommendationer gällande dagligt intag är något som förändras över tid. 
                         MatPerspektiv utgår från de senaste rekommendationerna med brett
                         vetenskapligt stöd, vilket för närvarande är de nordiska
                         näringsrekommendationerna, NNR 2023.
@@ -383,7 +392,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
 
                 <FoodInputs onInputToMatvara={onInputToMatvara} inputRows={inputRows} onRemoveInputRow={onRemoveInputRow}
                     onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
-                    onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct} />
+                    onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct} failedRequest={failedRequest} />
 
                 <div className="lagg-till-fler-outer">
                     <button className="lagg-till-fler" onClick={onAddInputRow}>
@@ -400,7 +409,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
     );
 }
 
-function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive, onSelectFoodProduct }:
+function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive, foodProducts, foodProductsFromEmbeddings, onHideActive, onSelectFoodProduct, failedRequest }:
     {
         onRemoveInputRow: (index: number) => void,
         inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
@@ -409,7 +418,8 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
         onHideActive: () => void,
-        onSelectFoodProduct: (product: FoodProduct) => void
+        onSelectFoodProduct: (product: FoodProduct) => void,
+        failedRequest: { basic: boolean, embeddings: boolean }
     }) {
     const content = inputRows.map((row: { id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null}) => (
         <Fragment key={row.id}> 
@@ -443,8 +453,8 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive
                         display: row.active ? 'flex' : 'none',
                     }}>
                     <div className="search-results-splitter">
-                        <SearchResults title="Sökresultat" items={foodProducts} activeId={row.id} onSelectFoodProduct={onSelectFoodProduct} />
-                        <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} onSelectFoodProduct={onSelectFoodProduct} />
+                        <SearchResults title="Sökresultat" items={foodProducts} activeId={row.id} onSelectFoodProduct={onSelectFoodProduct} hasFailed={failedRequest.basic} />
+                        <SearchResults title="Liknande resultat" items={foodProductsFromEmbeddings} activeId={row.id} onSelectFoodProduct={onSelectFoodProduct} hasFailed={failedRequest.embeddings} />
                     </div>
                     <button className="click-to-hide hide-active" onClick={onHideActive}>
                         <FontAwesomeIcon icon={faMinimize} size="lg" className="hide-active-icon" />
@@ -461,12 +471,13 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive
     );
 }
 
-function SearchResults({ title, items, activeId, onSelectFoodProduct }:
+function SearchResults({ title, items, activeId, onSelectFoodProduct, hasFailed }:
     {
         title: string,
         items: { products: Array<FoodProduct>; id: number },
         activeId: number,
-        onSelectFoodProduct: (product: FoodProduct) => void
+        onSelectFoodProduct: (product: FoodProduct) => void,
+        hasFailed: boolean
     }) {
     const [startIndex, setStartIndex] = useState(0);
     const itemsPerPage = 8;
@@ -512,6 +523,11 @@ function SearchResults({ title, items, activeId, onSelectFoodProduct }:
             <div className="search-results-title">{title}</div>
             <div className="search-items-container">
                 {results}
+                {hasFailed && (
+                    <div className="failure-message">
+                        <i>Servern verkar vara under tung belastning, eller så har något hänt som måste åtgärdas av en mänsklig hand.</i>
+                    </div>
+                )}
             </div>
             {!isLoading && (
                 <div className="select-page"
