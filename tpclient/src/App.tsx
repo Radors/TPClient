@@ -1,7 +1,7 @@
 ﻿import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import './App.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfo, faPlay, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, faCircleCheck, } from '@fortawesome/free-solid-svg-icons';
+import { faInfo, faPlay, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, faCircleCheck, faRotateLeft, faArrowRotateLeft, } from '@fortawesome/free-solid-svg-icons';
 import { useMediaQuery } from 'react-responsive'
 
 // Array<FoodProduct> will be RECEIVED from the server.
@@ -39,7 +39,7 @@ enum SearchType {
     Basic,
     Embeddings
 }
-type VisualMax = 100 | 200 | 400;
+type VisualMax = 50 | 100 | 200 | 400;
 
 export default function App() {
     return (
@@ -171,6 +171,15 @@ function FoodManager() {
         }
     }, [debouncedQuery, fetchData, inputRows]);
 
+    function onClearTopState() {
+        setInputRows(startingPoint);
+        setDisplayedInputRows([]);
+        setItemVisibility([]);
+        setMerInformation(false);
+        setDebouncedQuery("");
+        setFoodProducts({ products: [], id: -1 });
+        setFoodProductsFromEmbeddings({ products: [], id: -1 });
+    }
 
     function onToggleVisibility(index: number) {
         const newItemVisibility = itemVisibility.slice();
@@ -238,7 +247,7 @@ function FoodManager() {
 
     return (
         <div className="food-manager">
-            <TopBar onToggleMerInformation={onToggleMerInformation} />
+            <TopBar onToggleMerInformation={onToggleMerInformation} onClearTopState={onClearTopState} />
             <FoodMain inputRows={inputRows}
                 onAddInputRow={onAddInputRow}
                 onRemoveInputRow={onRemoveInputRow}
@@ -259,17 +268,17 @@ function FoodManager() {
     );
 }
 
-function TopBar({ onToggleMerInformation }: { onToggleMerInformation: () => void}) {
+function TopBar({ onToggleMerInformation, onClearTopState }: { onToggleMerInformation: () => void, onClearTopState: () => void }) {
     return (
         <div className="top-bar">
             <div className="top-bar-inner">
-                <button className="demonstration">
-                    <FontAwesomeIcon size="sm" className="play-icon" icon={faPlay} />
-                    Unnamed thing
-                </button>
                 <button className="mer-information" onClick={onToggleMerInformation}>
-                    <FontAwesomeIcon size="sm" className="info-icon" icon={faInfo} />
+                    <FontAwesomeIcon icon={faInfo} size="sm" className="info-icon"/>
                     Mer information
+                </button>
+                <button className="restore-button" onClick={onClearTopState}>
+                    <FontAwesomeIcon icon={faArrowRotateLeft} className="restore-icon"/>
+                    Återställ alla fält
                 </button>
             </div>
         </div>
@@ -340,7 +349,16 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
             }}>
                 <div className="mer-information-container">
                     <div className="mer-information-inner">
-
+                        Alla näringsvärden indikerar innehåll per 100 gram livsmedel.<br />
+                        Värderna visualiseras som procent av rekommenderat intag.<br />
+                        <br />
+                        Datamängden med näringstäthet är hämtad från Livsmedelsverket.<br />
+                        (Livsmedelsverkets livsmedelsdatabas version 2024-05-29)<br />
+                        <br />
+                        Rekommendationer gällande dagligt intag är något som förändras över tid.
+                        MatPerspektiv utgår från de senaste rekommendationerna med bredast
+                        vetenskapliga stöd, vilket för närvarande är de nordiska
+                        näringsrekommendationerna, NNR 2023.
                     </div>
                     <button className="click-to-hide hide-information" onClick={onToggleMerInformation}>
                         <FontAwesomeIcon icon={faXmark} size="lg" />
@@ -554,10 +572,10 @@ function FoodGraph({ itemVisibility, displayedInputRows, visualMax }: { itemVisi
             <div className="food-graph-canvas-limit-bar"></div>
             <div className="food-graph-guideline midguide"></div>
             <div className="food-graph-twohundred">
-                {visualMax === 100 ? "100%" : (visualMax === 200 ? "200%" : "400%")}
+                {visualMax === 50 ? "50%" : (visualMax === 100 ? "100%" : (visualMax === 200 ? "200%" : "400%"))}
             </div>
             <div className="food-graph-onehundred">
-                {visualMax === 100 ? "50%" : (visualMax === 200 ? "100%" : "200%")}
+                {visualMax === 50 ? "25%" : (visualMax === 100 ? "50%" : (visualMax === 200 ? "100%" : "200%"))}
             </div>
             <div className="food-graph-nutrients-outer">
                 {allLabels}
@@ -644,6 +662,13 @@ function FoodLegend({ itemVisibility, onToggleVisibility, displayedInputRows, on
                             Maximalt värde för visualisering
                         </div>
                         <div className="select-scale-buttons">
+                            <button className="select-scale-button" onClick={() => onSelectVisualMax(50)}
+                                style={{
+                                    backgroundColor: visualMax === 50 ? "black" : "white",
+                                    color: visualMax === 50 ? "white" : "black"
+                                }}>
+                                50%
+                            </button>
                             <button className="select-scale-button" onClick={() => onSelectVisualMax(100)}
                                 style={{
                                     backgroundColor: visualMax === 100 ? "black" : "white",
