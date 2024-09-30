@@ -45,9 +45,9 @@
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
 }
 .top-bar-inner {
-    margin-left: 30px;
     display: flex;
     align-items: center;
+    justify-content: start;
 }
 .restore-button, .mer-information {
     width: 150px;
@@ -58,7 +58,10 @@
     border: none;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
 }
-.restore-button{
+.mer-information {
+    margin-left: 30px;
+}
+.restore-button {
     margin-left: 25px;
 }
 .restore-icon {
@@ -248,10 +251,6 @@
     box-shadow: inset 0 0 0 2px #535bf2;
     border-radius: 8px;
 }
-.search-item:focus-visible {
-    box-shadow: inset 0 0 0 2px #535bf2;
-    border-radius: 8px;
-}
 .failure-message {
     width: 100%;
     padding-left: 10px;
@@ -307,16 +306,22 @@
     font-size: 12px;
 }
 .lagg-till-fler-outer {
+    width: 300px;
     justify-content: start;
     align-items: center;
-    width: 300px;
 }
 .lagg-till-fler {
+    width: 100%;
     display: flex;
     margin-top: 10px;
     margin-bottom: 20px;
-    width: 220px;
     padding: 6px;
+}
+.lagg-till-fler-text {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-right: 15%;
 }
 .generera-resultat {
     display: flex;
@@ -324,8 +329,13 @@
     width: 100%;
 }
 .resultat-icon {
-    margin-left: 8px;
-    margin-right: 28%;
+    margin-left: 15px;
+}
+.generera-resultat-text {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-right: 7%;
 }
 .lagg-till-fler, .generera-resultat {
     background: rgb(14,13,13);
@@ -341,15 +351,14 @@
     padding: 6px;
 }
 .plus-icon {
-    margin-left: 10px;
-    margin-right: 40px;
+    margin-left: 15px;
 }
 .food-output {
-    margin-top: 40px;
+    width: 88%;
     margin-left: auto;
+    margin-top: 40px;
     display: flex;
     flex-direction: column;
-    width: 80%;
 }
 .food-graph {
     display: flex;
@@ -505,14 +514,16 @@
 .switch-container {
     display: flex;
     width: 12%;
-    justify-content: center;
+    justify-content: end;
     align-items: center;
+    margin-left: 2px;
 }
 .food-legend-and-switch {
     display: flex;
     margin-bottom: 5px;
 }
 .food-legend-container {
+    width: 88%;
     display: flex;
     justify-content: start;
     height: 25px;
@@ -520,7 +531,6 @@
     background-color: white;
     border: none;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
-    width: 88%;
 }
 .food-legend-label {
     white-space: nowrap;
@@ -610,20 +620,17 @@ input:checked + .slider:before {
         margin-left: 0px;
         margin-right: 0px;
     }
-    .food-output {
-        margin-left: 15%;
-    }
 }
 @media (max-width: 465px) {
-    .food-output {
-        margin-left: 10%;
-    }
     .food-manager {
         width: 100%;
     }
 }
 @media (max-width: 400px) {
-    .top-bar-inner {
-        margin-left: 10px;
+    .mer-information {
+        margin-left: 20px;
+    }
+    .restore-button {
+        margin-left: 15px;
     }
 }

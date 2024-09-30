@@ -387,12 +387,16 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                 <div className="lagg-till-fler-outer">
                     <button className="lagg-till-fler" onClick={onAddInputRow}>
                         <FontAwesomeIcon size="lg" className="plus-icon" icon={faPlus} />
-                        Lägg till fler
+                        <div className="lagg-till-fler-text">
+                            Lägg till fler
+                        </div>
                     </button>
                 </div>
                 <button className="generera-resultat" onClick={onDisplayNutrition} >
                     <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
-                    Visa näringsvärden
+                    <div className="generera-resultat-text">
+                        Visa näringsvärden
+                    </div>
                 </button>
             </div>
         </div>

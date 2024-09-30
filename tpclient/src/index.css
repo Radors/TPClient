@@ -26,6 +26,7 @@ button {
     cursor: pointer;
     outline: 1px solid transparent;
     transition: outline-color .15s;
+    color: black;
 }
 button:hover,
 button:focus-visible {
