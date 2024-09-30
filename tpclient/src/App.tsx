@@ -190,7 +190,6 @@ function FoodManager() {
     function resetBothFailureStates() {
         setFailedRequest({ basic: false, embeddings: false });
     }
-
     function onClearTopState() {
         setInputRows(startingPoint);
         setDisplayedInputRows([]);
@@ -200,13 +199,11 @@ function FoodManager() {
         setFoodProducts({ products: [], id: -1 });
         setFoodProductsFromEmbeddings({ products: [], id: -1 });
     }
-
     function onToggleVisibility(index: number) {
         const newItemVisibility = itemVisibility.slice();
         newItemVisibility[index] = !newItemVisibility[index];
         setItemVisibility(newItemVisibility);
     }
-
     function onDisplayNutrition() {
         const inputRowsDecided = inputRows.filter(e => e.hasDecided && e.decision);
         if (inputRowsDecided.length < 1) {
@@ -215,7 +212,6 @@ function FoodManager() {
         setDisplayedInputRows(inputRowsDecided);
         setItemVisibility(Array(inputRowsDecided.length).fill(true));
     }
-
     function onSelectFoodProduct(product: FoodProduct) {
         const newInputRows = inputRows.map(item =>
             item.id === product.frontendId
@@ -224,7 +220,6 @@ function FoodManager() {
         );
         setInputRows(newInputRows);
     }
-
     function onSetActive(id: number) {
         const newInputRows = inputRows.map(item =>
             item.id === id
@@ -234,7 +229,6 @@ function FoodManager() {
         resetBothFailureStates();
         setInputRows(newInputRows);
     }
-
     function onHideActive() {
         const newInputRows = inputRows.map(item =>
             ({ ...item, active: false })
@@ -242,7 +236,6 @@ function FoodManager() {
         resetBothFailureStates();
         setInputRows(newInputRows);
     }
-
     function onInputToMatvara(event: React.ChangeEvent<HTMLInputElement>, id: number) {
         const newInputRows = inputRows.map(item =>
             item.id === id
@@ -251,22 +244,18 @@ function FoodManager() {
         );
         setInputRows(newInputRows);
     }
-
     function onToggleMerInformation() {
         setMerInformation(!merInformation);
     }
-
     function onAddInputRow() {
         const newInputRows = inputRows.slice();
         newInputRows.push({ id: (newInputRows[newInputRows.length - 1].id + 1), query: "", active: false, hasDecided: false, decision: null });
         setInputRows(newInputRows);
     }
-
     function onRemoveInputRow(id: number) {
         const newInputRows = inputRows.filter(e => e.id != id);
         setInputRows(newInputRows);
     }
-
     return (
         <div className="food-manager">
             <TopBar onToggleMerInformation={onToggleMerInformation} onClearTopState={onClearTopState} />
@@ -391,7 +380,6 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                 </div>
             </div>
             <div className="food-inputs-column-outer">
-
                 <FoodInputs onInputToMatvara={onInputToMatvara} inputRows={inputRows} onRemoveInputRow={onRemoveInputRow}
                     onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
                     onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct} failedRequest={failedRequest} />
@@ -465,7 +453,6 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive
             </div>
         </Fragment>
     ));
-
     return (
         <>
             {content}
@@ -561,7 +548,6 @@ function FoodOutput({ displayedInputRows, itemVisibility, onToggleVisibility }:
         itemVisibility: boolean[],
         onToggleVisibility: (index: number) => void
     }) {
-
     const [visualMax, setVisualMax] = useState<VisualMax>(100);
 
     function onSelectVisualMax(choice: VisualMax) {
@@ -573,8 +559,8 @@ function FoodOutput({ displayedInputRows, itemVisibility, onToggleVisibility }:
         <>
             <div className="food-output">
                 <FoodGraph itemVisibility={itemVisibility} displayedInputRows={displayedInputRows} visualMax={visualMax} />
-                <FoodLegend itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility}
-                    displayedInputRows={displayedInputRows} onSelectVisualMax={onSelectVisualMax} visualMax={visualMax} />
+                <FoodLegend itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility} displayedInputRows={displayedInputRows}
+                            onSelectVisualMax={onSelectVisualMax} visualMax={visualMax} />
             </div>
         </>
     );
@@ -589,11 +575,9 @@ function FoodGraph({ itemVisibility, displayedInputRows, visualMax }: { itemVisi
     const allBars = nutrientPropertyKeys.map((property: keyof FoodProduct, index: number) => (
         <FoodGraphCanvasBarContainer key={index} itemVisibility={itemVisibility} nutrientProperty={property} displayedInputRows={displayedInputRows} visualMax={visualMax} />
     ));
-
     const allLabels = nutrientLabels.map((label: string, index: number) => (
         <FoodGraphNutrientsContainer key={index} isMineral={(index < 7) ? true : false} nutrient={label} />
     ));
-
     return (
         <div className="food-graph">
             <div className="food-graph-canvas-limit-bar">
@@ -645,14 +629,12 @@ function FoodGraphCanvasBarContainer({ nutrientProperty, displayedInputRows, ite
             }}>
         </div>
     ));
-
     return (
         <div className="food-graph-canvas-bar-container">
             {content}
         </div>
     );
 }
-
 
 function FoodLegend({ itemVisibility, onToggleVisibility, displayedInputRows, onSelectVisualMax, visualMax }:
     {
@@ -684,7 +666,6 @@ function FoodLegend({ itemVisibility, onToggleVisibility, displayedInputRows, on
             </div>
         </div>
     ));
-
     return (
         <div className="food-legend-outer">
             <div className="food-legend-toprow">
@@ -736,4 +717,3 @@ function FoodLegend({ itemVisibility, onToggleVisibility, displayedInputRows, on
         </div>
     );
 }
-
