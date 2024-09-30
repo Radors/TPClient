@@ -329,7 +329,9 @@
 .generera-resultat {
     display: flex;
     padding: 6px;
-    width: 100%;
+    width: 98%;
+    margin-left: 1%;
+    margin-right: 1%;
 }
 .resultat-icon {
     margin-left: 15px;
