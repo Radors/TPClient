@@ -363,16 +363,15 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
             }}>
                 <div className="mer-information-container">
                     <div className="mer-information-inner">
-                        Näringsvärden indikerar innehåll per 100 gram livsmedel.<br />
-                        Dessa värden visualiseras som procent av rekommenderat intag.<br />
-                        <br />
-                        Datamängden med näringstäthet är hämtad från Livsmedelsverket.<br />
-                        (Livsmedelsverkets livsmedelsdatabas version 2024-05-29)<br />
-                        <br />
+                        Näringsvärden indikerar innehåll per 100 gram.<br />
+                        Dessa värden visualiseras som procent av rekommenderat intag. 
+                        Datamängden med näringstäthet är hämtad från: 
+                        Livsmedelsverkets livsmedelsdatabas version 2024-05-29.
+                        <br /><br />
                         Rekommendationer gällande dagligt intag är något som förändras över tid. 
                         MatPerspektiv utgår från de senaste rekommendationerna med brett
                         vetenskapligt stöd, vilket för närvarande är de nordiska
-                        näringsrekommendationerna, NNR 2023.
+                        näringsrekommendationerna, NNR(2023).
                     </div>
                     <button className="click-to-hide hide-information" onClick={onToggleMerInformation}>
                         <FontAwesomeIcon icon={faXmark} size="lg" />
