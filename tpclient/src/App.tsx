@@ -363,15 +363,18 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
             }}>
                 <div className="mer-information-container">
                     <div className="mer-information-inner">
-                        Näringsvärden indikerar innehåll per 100 gram.<br />
-                        Dessa värden visualiseras som procent av rekommenderat intag. 
-                        Datamängden med näringstäthet är hämtad från: 
-                        Livsmedelsverkets livsmedelsdatabas version 2024-05-29.
-                        <br /><br />
-                        Rekommendationer gällande dagligt intag är något som förändras över tid. 
-                        MatPerspektiv utgår från de senaste rekommendationerna med brett
-                        vetenskapligt stöd, vilket för närvarande är de nordiska
-                        näringsrekommendationerna, NNR(2023).
+                        <div className="mer-information-text-one">
+                            Näringsvärden indikerar innehåll per 100 gram.<br />
+                            Dessa värden visualiseras som procent av rekommenderat intag.
+                            Datamängden med näringstäthet är hämtad från:
+                            Livsmedelsverkets livsmedelsdatabas version 2024-05-29.<br />
+                        </div>
+                        <div className="mer-information-text-two">
+                            Rekommendationer gällande dagligt intag är något som förändras över tid.
+                            MatPerspektiv utgår från de senaste rekommendationerna med brett
+                            vetenskapligt stöd, vilket för närvarande är de nordiska
+                            näringsrekommendationerna, NNR(2023).
+                        </div>
                     </div>
                     <button className="click-to-hide hide-information" onClick={onToggleMerInformation}>
                         <FontAwesomeIcon icon={faXmark} size="lg" />
@@ -435,7 +438,7 @@ function FoodInputs({ onRemoveInputRow, inputRows, onInputToMatvara, onSetActive
                             <FontAwesomeIcon icon={faCircleCheck} className="decision-display-icon" size="lg" />
                             <div className="decision-display-text">
                                 {row.hasDecided && (row.decision) && (
-                                    `${row.decision.name.slice(0, 42)}${row.decision.name.length > 42 ? "..." : ""}`
+                                    `${row.decision.name.slice(0, 38)}${row.decision.name.length > 38 ? "..." : ""}`
                                 )}
                             </div>
                         </div>
@@ -505,7 +508,7 @@ function SearchResults({ title, items, activeId, onSelectFoodProduct, hasFailed 
         return (
             <div key={index} className="search-item" onClick={() => onSelectFoodProduct(item)}>
                 <p className="search-item-paragraph">
-                    {item.name.slice(0, verySmallScreen ? 50 : (smallScreen ? 60 : 70))}
+                    {item.name.slice(0, verySmallScreen ? 50 : (smallScreen ? 60 : 65))}
                 </p>
             </div>
         );
@@ -590,10 +593,10 @@ function FoodGraph({ itemVisibility, displayedInputRows, visualMax }: { itemVisi
             </div>
             <div className="food-graph-canvas-limit-bar"></div>
             <div className="food-graph-guideline midguide"></div>
-            <div className="food-graph-twohundred">
+            <div className="food-graph-max">
                 {visualMax === 50 ? "50%" : (visualMax === 100 ? "100%" : (visualMax === 200 ? "200%" : "400%"))}
             </div>
-            <div className="food-graph-onehundred">
+            <div className="food-graph-halfmax">
                 {visualMax === 50 ? "25%" : (visualMax === 100 ? "50%" : (visualMax === 200 ? "100%" : "200%"))}
             </div>
             <div className="food-graph-nutrients-outer">
