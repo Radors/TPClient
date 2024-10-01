@@ -381,7 +381,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                         </div>
                         <div className="mer-information-text-two">
                             Datamängden med näringstäthet är hämtad från:<br />
-                            <i>Livsmedelsverkets livsmedelsdatabas, version 2024-05-29.</i><br />
+                            <i>Livsmedelsverkets livsmedelsdatabas, 2024-05-29.</i><br />
                         </div>
                         <div className="mer-information-text-three">
                             Rekommendationer gällande dagligt intag baseras på:<br />
