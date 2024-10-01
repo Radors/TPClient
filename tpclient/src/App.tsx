@@ -62,7 +62,7 @@ function FoodManager() {
     const [inputRows, setInputRows] = useState<InputRow[]>(startingPoint);
     const [displayedInputRows, setDisplayedInputRows] = useState<InputRow[]>([]);
     const [itemVisibility, setItemVisibility] = useState<boolean[]>([]);
-    const [merInformation, setMerInformation] = useState(false);
+    const [moreInformation, setMoreInformation] = useState(false);
     const [foodProducts, setFoodProducts] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -206,7 +206,7 @@ function FoodManager() {
         setInputRows(startingPoint);
         setDisplayedInputRows([]);
         setItemVisibility([]);
-        setMerInformation(false);
+        setMoreInformation(false);
         setDebouncedQuery("");
         setFoodProducts({ products: [], id: -1 });
         setFoodProductsFromEmbeddings({ products: [], id: -1 });
@@ -256,8 +256,8 @@ function FoodManager() {
         );
         setInputRows(newInputRows);
     }
-    function onToggleMerInformation() {
-        setMerInformation(!merInformation);
+    function onToggleMoreInformation() {
+        setMoreInformation(!moreInformation);
     }
     function onAddInputRow() {
         const newInputRows = inputRows.slice();
@@ -270,13 +270,13 @@ function FoodManager() {
     }
     return (
         <div className="food-manager">
-            <TopBar onToggleMerInformation={onToggleMerInformation} onClearTopState={onClearTopState} />
+            <TopBar onToggleMoreInformation={onToggleMoreInformation} onClearTopState={onClearTopState} />
             <FoodMain inputRows={inputRows}
                 onAddInputRow={onAddInputRow}
                 onRemoveInputRow={onRemoveInputRow}
-                merInformation={merInformation}
+                moreInformation={moreInformation}
                 onInputToMatvara={onInputToMatvara}
-                onToggleMerInformation={onToggleMerInformation}
+                onToggleMoreInformation={onToggleMoreInformation}
                 onSetActive={onSetActive}
                 foodProducts={foodProducts}
                 foodProductsFromEmbeddings={foodProductsFromEmbeddings}
@@ -292,11 +292,11 @@ function FoodManager() {
     );
 }
 
-function TopBar({ onToggleMerInformation, onClearTopState }: { onToggleMerInformation: () => void, onClearTopState: () => void }) {
+function TopBar({ onToggleMoreInformation, onClearTopState }: { onToggleMoreInformation: () => void, onClearTopState: () => void }) {
     return (
         <div className="top-bar">
             <div className="top-bar-inner">
-                <button className="mer-information" onClick={onToggleMerInformation}>
+                <button className="more-information" onClick={onToggleMoreInformation}>
                     <FontAwesomeIcon icon={faInfo} size="sm" className="info-icon"/>
                     Mer information
                 </button>
@@ -310,15 +310,15 @@ function TopBar({ onToggleMerInformation, onClearTopState }: { onToggleMerInform
 }
 
 function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings,
+    moreInformation, onToggleMoreInformation, onSetActive, foodProducts, foodProductsFromEmbeddings,
     onHideActive, onSelectFoodProduct, onDisplayNutrition, displayedInputRows, itemVisibility, onToggleVisibility, failedRequest }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onAddInputRow: () => void,
         onRemoveInputRow: (index: number) => void,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
-        merInformation: boolean,
-        onToggleMerInformation: () => void,
+        moreInformation: boolean,
+        onToggleMoreInformation: () => void,
         onSetActive: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
@@ -334,8 +334,8 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
         <div className="food-main">
             <div className="food-main-left">
                 <FoodInputOuter
-                    onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} merInformation={merInformation}
-                    onInputToMatvara={onInputToMatvara} onToggleMerInformation={onToggleMerInformation} onSetActive={onSetActive}
+                    onAddInputRow={onAddInputRow} onRemoveInputRow={onRemoveInputRow} inputRows={inputRows} moreInformation={moreInformation}
+                    onInputToMatvara={onInputToMatvara} onToggleMoreInformation={onToggleMoreInformation} onSetActive={onSetActive}
                     foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings} onHideActive={onHideActive}
                     onSelectFoodProduct={onSelectFoodProduct} onDisplayNutrition={onDisplayNutrition} failedRequest={failedRequest}
                 />
@@ -350,15 +350,15 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
 }
 
 function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara,
-    merInformation, onToggleMerInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, 
+    moreInformation, onToggleMoreInformation, onSetActive, foodProducts, foodProductsFromEmbeddings, 
     onHideActive, onSelectFoodProduct, onDisplayNutrition, failedRequest }:
     {
         inputRows: Array<{ id: number, query: string, active: boolean, hasDecided: boolean, decision: FoodProduct | null }>,
         onAddInputRow: () => void,
         onRemoveInputRow: (index: number) => void,
         onInputToMatvara: (event: React.ChangeEvent<HTMLInputElement>, index: number) => void,
-        merInformation: boolean,
-        onToggleMerInformation: () => void,
+        moreInformation: boolean,
+        onToggleMoreInformation: () => void,
         onSetActive: (id: number) => void,
         foodProducts: { products: Array<FoodProduct>; id: number },
         foodProductsFromEmbeddings: { products: Array<FoodProduct>; id: number },
@@ -369,26 +369,26 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
     }) {
     return (
         <div className="food-input">
-            <div className="mer-information-outer"
+            <div className="more-information-outer"
             style={{
-                display: merInformation ? "flex" : "none",
+                display: moreInformation ? "flex" : "none",
             }}>
-                <div className="mer-information-container">
-                    <div className="mer-information-inner">
-                        <div className="mer-information-text-one">
+                <div className="more-information-container">
+                    <div className="more-information-inner">
+                        <div className="more-information-text-one">
                             Näringsvärden indikerar innehåll per 100 gram.<br />
                             Dessa värden visas som procent av rekommenderat intag.<br />
                         </div>
-                        <div className="mer-information-text-two">
+                        <div className="more-information-text-two">
                             Datamängden med näringstäthet är hämtad från:<br />
                             <i>Livsmedelsverkets livsmedelsdatabas, 2024-05-29.</i><br />
                         </div>
-                        <div className="mer-information-text-three">
+                        <div className="more-information-text-three">
                             Rekommendationer gällande dagligt intag baseras på:<br />
                             <i>Nordiska Näringsrekommendationer, NNR 2023.</i><br />
                         </div>
                     </div>
-                    <button className="click-to-hide hide-information" onClick={onToggleMerInformation}>
+                    <button className="click-to-hide hide-information" onClick={onToggleMoreInformation}>
                         <FontAwesomeIcon icon={faXmark} size="lg" />
                     </button>
                 </div>
@@ -398,17 +398,17 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                     onSetActive={onSetActive} foodProducts={foodProducts} foodProductsFromEmbeddings={foodProductsFromEmbeddings}
                     onHideActive={onHideActive} onSelectFoodProduct={onSelectFoodProduct} failedRequest={failedRequest} />
 
-                <div className="lagg-till-fler-outer">
-                    <button className="lagg-till-fler" onClick={onAddInputRow}>
+                <div className="add-inputrow-outer">
+                    <button className="add-inputrow" onClick={onAddInputRow}>
                         <FontAwesomeIcon size="lg" className="plus-icon" icon={faPlus} />
-                        <div className="lagg-till-fler-text">
+                        <div className="add-inputrow-text">
                             Lägg till fler
                         </div>
                     </button>
                 </div>
-                <button className="generera-resultat" onClick={onDisplayNutrition} >
+                <button className="display-output-button" onClick={onDisplayNutrition} >
                     <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
-                    <div className="generera-resultat-text">
+                    <div className="display-output-button-text">
                         Visa näringsvärden
                     </div>
                 </button>

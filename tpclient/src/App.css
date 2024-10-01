@@ -49,7 +49,7 @@
     align-items: center;
     justify-content: start;
 }
-.mer-information,
+.more-information,
 .restore-button {
     width: 150px;
     background-color: white;
@@ -59,7 +59,7 @@
     border: none;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
 }
-.mer-information {
+.more-information {
     margin-left: 30px;
 }
 .restore-button {
@@ -98,27 +98,27 @@
     margin-right: 15px;
     margin-top: 20px;
 }
-.mer-information-outer {
+.more-information-outer {
     margin-bottom: 15px;
 }
-.mer-information-container {
+.more-information-container {
     width: 100%;
     display: flex;
     border-radius: 12px;
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
     position: relative;
 }
-.mer-information-inner {
+.more-information-inner {
     width: 96%;
     display: flex;
     flex-direction: column;
     font-size: 12px;
     padding: 12px;
 }
-.mer-information-text-one {
+.more-information-text-one {
     margin-bottom: 12px;
 }
-.mer-information-text-two {
+.more-information-text-two {
     margin-bottom: 12px;
 }
 .click-to-hide {
@@ -311,25 +311,25 @@
     font-style: italic;
     font-size: 12px;
 }
-.lagg-till-fler-outer {
+.add-inputrow-outer {
     width: 300px;
     justify-content: start;
     align-items: center;
 }
-.lagg-till-fler {
+.add-inputrow {
     width: 100%;
     display: flex;
     margin-top: 10px;
     margin-bottom: 20px;
     padding: 6px;
 }
-.lagg-till-fler-text {
+.add-inputrow-text {
     width: 100%;
     display: flex;
     justify-content: center;
     margin-right: 15%;
 }
-.generera-resultat {
+.display-output-button {
     display: flex;
     padding: 6px;
     width: 98%;
@@ -339,13 +339,13 @@
 .resultat-icon {
     margin-left: 15px;
 }
-.generera-resultat-text {
+.display-output-button-text {
     width: 100%;
     display: flex;
     justify-content: center;
     margin-right: 7%;
 }
-.lagg-till-fler, .generera-resultat {
+.add-inputrow, .display-output-button {
     background: rgb(14,13,13);
     background: linear-gradient(90deg, rgba(14,13,13,1) 0%, rgba(28,28,28,1) 51%, rgba(15,15,15,1) 100%);
     color: white;
@@ -636,7 +636,7 @@ input:checked + .slider:before {
     }
 }
 @media (max-width: 400px) {
-    .mer-information {
+    .more-information {
         margin-left: 20px;
     }
     .restore-button {
