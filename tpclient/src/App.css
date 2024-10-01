@@ -496,14 +496,13 @@
 }
 .select-scale-button {
     width: 25%;
-    height: 30px;
+    height: 31px;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 0px;
     background: none;
     outline: none;
-    font-size: 12px;
+    font-size: 13px;
     border-radius: 8px;
 }
 .select-scale-button:hover,
