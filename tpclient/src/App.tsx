@@ -66,7 +66,8 @@ function FoodManager() {
     const [foodProducts, setFoodProducts] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [foodProductsFromEmbeddings, setFoodProductsFromEmbeddings] = useState<{ products: FoodProduct[]; id: number }>({ products: [], id: -1 });
     const [debouncedQuery, setDebouncedQuery] = useState("");
-    const [failedRequest, setFailedRequest] = useState({basic: false, embeddings: false});
+    const [failedRequest, setFailedRequest] = useState({ basic: false, embeddings: false });
+    const [lightlyWarmed, setLightlyWarmed] = useState(false);
     const foodProductsRef = useRef(foodProducts);
     foodProductsRef.current = foodProducts;
 
@@ -162,6 +163,17 @@ function FoodManager() {
             }
         }
     }, []);
+
+    useEffect(() => {
+        const warm = async () => {
+            const basicWarming = "https://tp-api.salmonwave-4f8bbb94.swedencentral.azurecontainerapps.io/food/search/basic?query=tomat&frontendid=900";
+            await fetch(basicWarming);
+        }
+        if (!lightlyWarmed) {
+            setLightlyWarmed(true);
+            warm();
+        }
+    }, [lightlyWarmed]);
 
     useEffect(() => {
         if (typeof activeInput.query === "string" && activeInput.query.trim() !== "") {
