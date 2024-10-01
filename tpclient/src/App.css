@@ -417,7 +417,7 @@
 .lowerguide {
     top: 228px;
 }
-.food-graph-max, .food-graph-halfmax {
+.guideline-label {
     width: 35px;
     display: flex;
     justify-content: end;
@@ -425,11 +425,11 @@
     font-size: small;
     font-weight: 500;
 }
-.food-graph-max {
+.guide-label-one {
     left: -38px;
     top: -9px;
 }
-.food-graph-halfmax {
+.guide-label-two {
     left: -38px;
     top: 143px;
     color: gray;

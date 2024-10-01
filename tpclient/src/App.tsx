@@ -604,11 +604,13 @@ function FoodGraph({ itemVisibility, displayedInputRows, visualMax }: { itemVisi
                 {allBars}
             </div>
             <div className="food-graph-canvas-limit-bar"></div>
+            <div className="food-graph-guideline upperguide"></div>
             <div className="food-graph-guideline midguide"></div>
-            <div className="food-graph-max">
+            <div className="food-graph-guideline lowerguide"></div>
+            <div className="guideline-label guide-label-one">
                 {visualMax === 50 ? "50%" : (visualMax === 100 ? "100%" : (visualMax === 200 ? "200%" : "400%"))}
             </div>
-            <div className="food-graph-halfmax">
+            <div className="guideline-label guide-label-two">
                 {visualMax === 50 ? "25%" : (visualMax === 100 ? "50%" : (visualMax === 200 ? "100%" : "200%"))}
             </div>
             <div className="food-graph-nutrients-outer">
