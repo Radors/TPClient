@@ -509,6 +509,10 @@ function SearchResults({ title, items, activeId, onSelectFoodProduct, hasFailed 
         }
     }, [isLoading]);
 
+    useEffect(() => {
+        setStartIndex(0);
+    }, [items]);
+
     const visibleItems = items.products.slice(startIndex, (startIndex + itemsPerPage));
 
     const results = visibleItems.map((item: FoodProduct, index: number) => {
