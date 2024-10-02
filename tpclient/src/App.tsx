@@ -341,7 +341,7 @@ function FoodMain({ inputRows, onAddInputRow, onRemoveInputRow, onInputToMatvara
             </div>
             <div className="food-main-divider">
             </div>
-            <div className="food-main-right" id="scrolling-target-for-results">
+            <div className="food-main-right" id="display">
                 <FoodOutput displayedInputRows={displayedInputRows} itemVisibility={itemVisibility} onToggleVisibility={onToggleVisibility} />
             </div>
         </div>
@@ -405,7 +405,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                         </div>
                     </button>
                 </div>
-                <a className="display-output-button" onClick={onDisplayNutrition} href="#scrolling-target-for-results" >
+                <a className="display-output-button" onClick={onDisplayNutrition} href="#display" >
                     <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
                     <div className="display-output-button-text">
                         Visa näringsvärden
