@@ -367,7 +367,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         onDisplayNutrition: () => void,
         failedRequest: { basic: boolean, embeddings: boolean }
     }) {
-    const onlyOneColumn = useMediaQuery({ maxWidth: 988 });
+    const onlyOneColumn = useMediaQuery({ maxWidth: 495 });
     return (
         <div className="food-input">
             <div className="more-information-outer"
