@@ -60,7 +60,7 @@
     box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
 }
 .more-information {
-    margin-left: 30px;
+    margin-left: 28px;
 }
 .restore-button {
     margin-left: 25px;
@@ -634,12 +634,23 @@ input:checked + .slider:before {
     .food-manager {
         width: 100%;
     }
+    .search-item-paragraph {
+        font-size: 11px;
+        line-height: 11px;
+    }
 }
 @media (max-width: 400px) {
     .more-information {
-        margin-left: 20px;
+        margin-left: 14px;
     }
     .restore-button {
-        margin-left: 15px;
+        margin-left: 12px;
+    }
+}
+@media (max-width: 360px) {
+    .more-information,
+    .restore-button {
+        margin-left: 10px;
+        width: 140px;
     }
 }

@@ -2,7 +2,6 @@
 import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfo, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, faCircleCheck, faArrowRotateLeft, } from '@fortawesome/free-solid-svg-icons';
-import { useMediaQuery } from 'react-responsive'
 
 interface FoodProduct {
     query: string;
@@ -508,9 +507,6 @@ function SearchResults({ title, items, activeId, onSelectFoodProduct, hasFailed 
         }
     }, [isLoading]);
 
-    const verySmallScreen = useMediaQuery({ maxWidth: 420 });
-    const smallScreen = useMediaQuery({ maxWidth: 470 });
-
     const visibleItems = items.products.slice(startIndex, (startIndex + itemsPerPage));
 
     const results = visibleItems.map((item: FoodProduct, index: number) => {
@@ -520,7 +516,7 @@ function SearchResults({ title, items, activeId, onSelectFoodProduct, hasFailed 
         return (
             <div key={index} className="search-item" onClick={() => onSelectFoodProduct(item)}>
                 <p className="search-item-paragraph">
-                    {item.name.slice(0, verySmallScreen ? 50 : (smallScreen ? 60 : 65))}
+                    {item.name.slice(0, 60)}
                 </p>
             </div>
         );
