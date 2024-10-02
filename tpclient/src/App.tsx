@@ -2,6 +2,7 @@
 import { Fragment, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfo, faPlus, faSquarePollVertical, faXmark, faArrowRight, faArrowLeft, faCircleXmark, faMinimize, faCircleCheck, faArrowRotateLeft, } from '@fortawesome/free-solid-svg-icons';
+import { useMediaQuery } from 'react-responsive';
 
 interface FoodProduct {
     query: string;
@@ -366,6 +367,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
         onDisplayNutrition: () => void,
         failedRequest: { basic: boolean, embeddings: boolean }
     }) {
+    const onlyOneColumn = useMediaQuery({ maxWidth: 988 });
     return (
         <div className="food-input">
             <div className="more-information-outer"
@@ -405,7 +407,7 @@ function FoodInputOuter({ inputRows, onAddInputRow, onRemoveInputRow, onInputToM
                         </div>
                     </button>
                 </div>
-                <a className="display-output-button" onClick={onDisplayNutrition} href="#display" >
+                <a className="display-output-button" onClick={onDisplayNutrition} href={onlyOneColumn ? "#display" : undefined} >
                     <FontAwesomeIcon className="resultat-icon" size="xl" icon={faSquarePollVertical} />
                     <div className="display-output-button-text">
                         Visa näringsvärden
